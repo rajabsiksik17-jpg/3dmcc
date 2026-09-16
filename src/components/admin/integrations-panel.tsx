@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import {
   saveIntegration,
@@ -25,6 +26,7 @@ export function IntegrationsPanel({
   smtp: { host: string; port: number; user: string; encryption: string; fromName: string; fromEmail: string };
 }) {
   const router = useRouter();
+  const t = useTranslations();
   const [pending, startTransition] = useTransition();
 
   const [gaState, setGaState] = useState(ga);

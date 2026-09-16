@@ -3,8 +3,10 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { cn } from "@/lib/utils";
 import { logout } from "@/app/admin/actions/auth";
+import { AdminLanguageSwitcher } from "./admin-language-switcher";
 import {
   LayoutDashboard,
   FileText,
@@ -22,6 +24,7 @@ import {
   Image,
   Menu,
   LogOut,
+  FolderTree,
 } from "lucide-react";
 
 interface NavItem {
@@ -44,25 +47,27 @@ export function AdminShell({
   role: string;
   fullName: string;
 }) {
+  const t = useTranslations();
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
 
   const nav: NavItem[] = [
-    { label: "Dashboard", href: "/admin", icon: LayoutDashboard },
-    { label: "Pages", href: "/admin/pages", icon: FileText, group: "Content" },
-    { label: "Services", href: "/admin/services", icon: Briefcase },
-    { label: "Courses", href: "/admin/courses", icon: GraduationCap },
-    { label: "Careers", href: "/admin/careers", icon: Users },
-    { label: "Team", href: "/admin/team", icon: Users },
-    { label: "FAQs", href: "/admin/faqs", icon: HelpCircle },
-    { label: "Media", href: "/admin/media", icon: Image },
-    { label: "Forms", href: "/admin/forms", icon: Layers, group: "Forms" },
-    { label: "Submissions", href: "/admin/submissions", icon: Inbox, badge: unread },
-    { label: "Notifications", href: "/admin/notifications", icon: Bell, badge: unread },
-    { label: "Company Info", href: "/admin/company", icon: Building2, group: "Company" },
-    { label: "SEO", href: "/admin/seo", icon: Search },
-    { label: "Integrations", href: "/admin/integrations", icon: Plug },
-    { label: "Users & Roles", href: "/admin/users", icon: ShieldCheck, superOnly: true },
+    { label: t("dashboard"), href: "/admin", icon: LayoutDashboard },
+    { label: t("pages"), href: "/admin/pages", icon: FileText, group: t("groupContent") },
+    { label: t("services"), href: "/admin/services", icon: Briefcase },
+    { label: t("courses"), href: "/admin/courses", icon: GraduationCap },
+    { label: t("courseCategories"), href: "/admin/course-categories", icon: FolderTree },
+    { label: t("careers"), href: "/admin/careers", icon: Users },
+    { label: t("team"), href: "/admin/team", icon: Users },
+    { label: t("faqs"), href: "/admin/faqs", icon: HelpCircle },
+    { label: t("media"), href: "/admin/media", icon: Image },
+    { label: t("forms"), href: "/admin/forms", icon: Layers, group: t("groupForms") },
+    { label: t("submissions"), href: "/admin/submissions", icon: Inbox, badge: unread },
+    { label: t("notifications"), href: "/admin/notifications", icon: Bell, badge: unread },
+    { label: t("company"), href: "/admin/company", icon: Building2, group: t("groupCompany") },
+    { label: t("seo"), href: "/admin/seo", icon: Search },
+    { label: t("integrations"), href: "/admin/integrations", icon: Plug },
+    { label: t("users"), href: "/admin/users", icon: ShieldCheck, superOnly: true },
   ];
 
   const visibleNav = nav.filter((i) => !i.superOnly || role === "super_admin");
@@ -75,8 +80,8 @@ export function AdminShell({
             3D
           </span>
           <div>
-            <p className="text-sm font-bold text-white">3DMCC</p>
-            <p className="text-[11px] text-charcoal-400">Admin Dashboard</p>
+            <p className="text-sm font-bold text-white">{t("brand")}</p>
+            <p className="text-[11px] text-charcoal-400">{t("adminDashboard")}</p>
           </div>
         </div>
         <nav className="flex-1 overflow-y-auto px-3 py-4">
@@ -98,7 +103,7 @@ export function AdminShell({
                     : "text-charcoal-300 hover:bg-charcoal-800 hover:text-white"
                 )}
               >
-                <item.icon className="h-4 w-4" />
+                <item.icon className="h-4 w-4 shrink-0" />
                 <span className="flex-1">{item.label}</span>
                 {item.badge != null && item.badge > 0 && (
                   <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-brand-500 px-1.5 text-[11px] font-bold text-white">
@@ -115,14 +120,14 @@ export function AdminShell({
               {fullName?.charAt(0) ?? "A"}
             </div>
             <div className="min-w-0 flex-1">
-              <p className="truncate text-sm font-medium text-white">{fullName || "Admin"}</p>
+              <p className="truncate text-sm font-medium text-white">{fullName || t("fullName")}</p>
               <p className="truncate text-[11px] text-charcoal-400">{role}</p>
             </div>
             <form action={logout}>
               <button
                 type="submit"
                 className="flex h-8 w-8 items-center justify-center rounded-lg text-charcoal-400 hover:bg-charcoal-800 hover:text-white"
-                aria-label="Logout"
+                aria-label={t("logout")}
               >
                 <LogOut className="h-4 w-4" />
               </button>
@@ -155,22 +160,23 @@ export function AdminShell({
               type="button"
               onClick={() => setOpen(true)}
               className="flex h-9 w-9 items-center justify-center rounded-lg text-charcoal-700 hover:bg-charcoal-50 lg:hidden"
-              aria-label="Open menu"
+              aria-label={t("openMenu")}
             >
               <Menu className="h-5 w-5" />
             </button>
             <h1 className="text-sm font-semibold text-charcoal-900">
               {nav.find((n) => pathname === n.href || (n.href !== "/admin" && pathname.startsWith(n.href)))?.label ??
-                "Dashboard"}
+                t("dashboard")}
             </h1>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1">
+            <AdminLanguageSwitcher />
             <Link
               href="/"
               target="_blank"
               className="inline-flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium text-charcoal-600 hover:bg-charcoal-50"
             >
-              View Website
+              {t("viewWebsite")}
             </Link>
           </div>
         </header>

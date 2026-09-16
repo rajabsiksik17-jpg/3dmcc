@@ -117,6 +117,7 @@ export type ServiceRow = {
   form_id: string | null;
   status: "draft" | "published";
   featured: boolean;
+  show_on_homepage: boolean;
   sort_order: number;
   meta_title_en: string | null;
   meta_title_ar: string | null;
@@ -148,6 +149,7 @@ export type CourseRow = {
   target_audience_ar: Json | null;
   prerequisites_en: Json | null;
   prerequisites_ar: Json | null;
+  icon: string | null;
   featured_image: string | null;
   category_id: string | null;
   form_id: string | null;
@@ -156,8 +158,10 @@ export type CourseRow = {
   instructor_en: string | null;
   instructor_ar: string | null;
   start_date: string | null;
+  end_date: string | null;
   schedule: string | null;
   price: number | null;
+  offer_price: number | null;
   currency: string | null;
   availability: string | null;
   status: "draft" | "published";
@@ -198,6 +202,8 @@ export type JobRow = {
   salary_currency: string | null;
   deadline: string | null;
   status: "draft" | "published";
+  featured: boolean;
+  icon: string | null;
   featured_image: string | null;
   form_id: string | null;
   sort_order: number;
@@ -388,6 +394,16 @@ export type CategoryRow = {
   name_ar: string;
   slug: string;
   sort_order: number;
+  icon: string | null;
+  image: string | null;
+  description_en: string | null;
+  description_ar: string | null;
+  status: string | null;
+  featured: boolean | null;
+  seo_title_en: string | null;
+  seo_title_ar: string | null;
+  seo_description_en: string | null;
+  seo_description_ar: string | null;
   created_at: string;
 }
 

@@ -2,13 +2,16 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { IconPicker } from "./icon-picker";
+import { MediaPicker } from "./media-picker";
 
 export type FieldDef = {
   name: string;
   label: string;
-  type?: "text" | "textarea" | "select" | "number" | "toggle";
+  type?: "text" | "textarea" | "select" | "number" | "toggle" | "icon" | "image";
   options?: { value: string; label: string }[];
   placeholder?: string;
   half?: boolean;
@@ -19,7 +22,7 @@ export function AdminEntityForm({
   fields,
   initial,
   action,
-  submitLabel = "Save",
+  submitLabel = "save",
   cancelHref,
 }: {
   fields: FieldDef[];
@@ -28,6 +31,7 @@ export function AdminEntityForm({
   submitLabel?: string;
   cancelHref: string;
 }) {
+  const t = useTranslations();
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState("");
@@ -59,6 +63,11 @@ export function AdminEntityForm({
     });
   }
 
+  const label = (key: string) => {
+    const found = t.has(key) ? t(key) : key;
+    return found;
+  };
+
   return (
     <form onSubmit={onSubmit} className="rounded-2xl border border-charcoal-100 bg-white p-6 shadow-card">
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -68,7 +77,7 @@ export function AdminEntityForm({
           if (f.type === "textarea") {
             return (
               <div key={f.name} className="sm:col-span-2">
-                <label className="label">{f.label}</label>
+                <label className="label">{label(f.label)}</label>
                 <textarea
                   rows={4}
                   className="input"
@@ -83,15 +92,41 @@ export function AdminEntityForm({
           if (f.type === "select") {
             return (
               <div key={f.name} className={cn(f.half ? "sm:col-span-1" : "sm:col-span-2")}>
-                <label className="label">{f.label}</label>
+                <label className="label">{label(f.label)}</label>
                 <select className="input" value={String(val ?? "")} onChange={(e) => set(f.name, e.target.value)}>
-                  <option value="">Select...</option>
+                  <option value="">{t("select")}</option>
                   {f.options?.map((o) => (
                     <option key={o.value} value={o.value}>
-                      {o.label}
+                      {label(o.label)}
                     </option>
                   ))}
                 </select>
+              </div>
+            );
+          }
+
+          if (f.type === "icon") {
+            return (
+              <div key={f.name} className="sm:col-span-2">
+                <label className="label">{label(f.label)}</label>
+                <IconPicker
+                  value={String(val ?? "") || null}
+                  onChange={(name) => set(f.name, name)}
+                  onClear={() => set(f.name, "")}
+                />
+              </div>
+            );
+          }
+
+          if (f.type === "image") {
+            return (
+              <div key={f.name} className="sm:col-span-2">
+                <label className="label">{label(f.label)}</label>
+                <MediaPicker
+                  value={String(val ?? "") || null}
+                  onChange={(url) => set(f.name, url)}
+                  onClear={() => set(f.name, "")}
+                />
               </div>
             );
           }
@@ -107,7 +142,7 @@ export function AdminEntityForm({
                   onChange={(e) => set(f.name, e.target.checked)}
                 />
                 <label htmlFor={f.name} className="text-sm font-medium text-charcoal-700">
-                  {f.label}
+                  {label(f.label)}
                 </label>
               </div>
             );
@@ -115,7 +150,7 @@ export function AdminEntityForm({
 
           return (
             <div key={f.name} className={cn(f.half ? "sm:col-span-1" : "sm:col-span-2")}>
-              <label className="label">{f.label}</label>
+              <label className="label">{label(f.label)}</label>
               <input
                 type={f.type === "number" ? "number" : "text"}
                 step={f.step}
@@ -135,10 +170,10 @@ export function AdminEntityForm({
 
       <div className="mt-6 flex items-center gap-2">
         <Button type="submit" loading={pending}>
-          {submitLabel}
+          {t(submitLabel)}
         </Button>
         <Button type="button" variant="secondary" onClick={() => router.push(cancelHref)}>
-          Cancel
+          {t("cancel")}
         </Button>
       </div>
     </form>

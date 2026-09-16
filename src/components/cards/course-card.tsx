@@ -1,16 +1,29 @@
 import { Link } from "@/i18n/routing";
-import { useLocale } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { localized, formatDate } from "@/lib/utils";
 import type { CourseRow } from "@/types/database";
-import { Clock, User, CalendarDays } from "lucide-react";
+import { Clock, User, CalendarDays, BadgePercent } from "lucide-react";
+import { DynamicIcon } from "@/components/ui/icon";
 
 export function CourseCard({ course }: { course: CourseRow }) {
   const locale = useLocale() as "en" | "ar";
+  const ta = useTranslations("availability");
+
+  const hasOffer = course.offer_price != null && course.price != null && course.offer_price < course.price;
+  const percent = hasOffer && course.price ? Math.round(((course.price - (course.offer_price ?? 0)) / course.price) * 100) : 0;
+
+  const availability = course.availability
+    ? ta.has(course.availability)
+      ? ta(course.availability as "open" | "full" | "closed")
+      : course.availability
+    : "";
 
   return (
     <Link
       href={`/courses/${course.slug}`}
-      className="group flex flex-col overflow-hidden rounded-2xl border border-charcoal-100 bg-white shadow-card transition-all duration-300 hover:-translate-y-1 hover:shadow-lift"
+      className={`group flex flex-col overflow-hidden rounded-2xl border bg-white shadow-card transition-all duration-300 hover:-translate-y-1 hover:shadow-lift ${
+        hasOffer ? "border-brand-200 ring-1 ring-brand-100" : "border-charcoal-100"
+      }`}
     >
       <div className="relative aspect-[16/9] w-full overflow-hidden bg-charcoal-100">
         {course.featured_image ? (
@@ -22,8 +35,14 @@ export function CourseCard({ course }: { course: CourseRow }) {
           />
         ) : (
           <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-charcoal-100 to-charcoal-200 text-charcoal-400">
-            <Clock className="h-8 w-8" />
+            <DynamicIcon name={course.icon ?? "GraduationCap"} className="h-8 w-8" />
           </div>
+        )}
+        {hasOffer && (
+          <span className="absolute start-3 top-3 inline-flex items-center gap-1 rounded-full bg-brand-500 px-2.5 py-1 text-xs font-bold text-white shadow-soft">
+            <BadgePercent className="h-3.5 w-3.5" />
+            {percent}%
+          </span>
         )}
       </div>
       <div className="flex flex-1 flex-col p-6">
@@ -33,7 +52,26 @@ export function CourseCard({ course }: { course: CourseRow }) {
         <p className="mt-2 flex-1 text-sm leading-relaxed text-charcoal-600">
           {localized(locale, { en: course.short_description_en, ar: course.short_description_ar })}
         </p>
-        <div className="mt-4 flex flex-wrap gap-x-4 gap-y-1.5 text-xs text-charcoal-500">
+
+        <div className="mt-4 flex items-center gap-2">
+          {hasOffer ? (
+            <>
+              <span className="text-lg font-bold text-brand-600">
+                {course.offer_price} {course.currency}
+              </span>
+              <span className="text-sm text-charcoal-400 line-through">
+                {course.price} {course.currency}
+              </span>
+            </>
+          ) : course.price != null ? (
+            <span className="text-lg font-bold text-charcoal-900">
+              {course.price} {course.currency}
+            </span>
+          ) : null}
+          {availability && <span className="ms-auto text-xs text-charcoal-500">{availability}</span>}
+        </div>
+
+        <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1.5 text-xs text-charcoal-500">
           {course.duration && (
             <span className="inline-flex items-center gap-1.5">
               <Clock className="h-3.5 w-3.5 text-brand-500" />

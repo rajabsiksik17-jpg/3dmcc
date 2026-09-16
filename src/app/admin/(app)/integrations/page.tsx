@@ -2,11 +2,13 @@ import { requireSuperAdmin } from "@/lib/auth";
 import { adminIntegrations } from "@/lib/admin-data";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { IntegrationsPanel } from "@/components/admin/integrations-panel";
+import { getAdminT } from "@/lib/admin-i18n";
 
 export const dynamic = "force-dynamic";
 
 export default async function IntegrationsPage() {
   await requireSuperAdmin();
+  const { t } = await getAdminT();
 
   const integrations = await adminIntegrations();
   const ga = integrations.find((i) => i.key === "google_analytics")?.config as { measurementId?: string } | undefined;
@@ -21,7 +23,7 @@ export default async function IntegrationsPage() {
 
   return (
     <div>
-      <h1 className="mb-6 text-xl font-semibold text-charcoal-900">Integrations</h1>
+      <h1 className="mb-6 text-xl font-semibold text-charcoal-900">{t("integrations")}</h1>
       <IntegrationsPanel
         ga={{ enabled: Boolean(integrations.find((i) => i.key === "google_analytics")?.enabled), measurementId: ga?.measurementId ?? "" }}
         gsc={{

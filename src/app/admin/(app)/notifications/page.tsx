@@ -3,20 +3,22 @@ import { adminNotifications } from "@/lib/admin-data";
 import { markAllNotificationsRead, deleteNotification, markNotificationRead } from "@/app/admin/actions/content";
 import { DeleteButton } from "@/components/admin/delete-button";
 import { Bell, CheckCheck } from "lucide-react";
+import { getAdminT } from "@/lib/admin-i18n";
 
 export const dynamic = "force-dynamic";
 
 export default async function NotificationsPage() {
   await requireAdmin();
+  const { t } = await getAdminT();
   const notifications = await adminNotifications();
 
   return (
     <div>
       <div className="mb-6 flex items-center justify-between">
-        <h1 className="text-xl font-semibold text-charcoal-900">Notifications</h1>
+        <h1 className="text-xl font-semibold text-charcoal-900">{t("notifications")}</h1>
         <form action={markAllNotificationsRead}>
           <button type="submit" className="btn-secondary !py-2">
-            <CheckCheck className="h-4 w-4" /> Mark all as read
+            <CheckCheck className="h-4 w-4" /> {t("markAllRead")}
           </button>
         </form>
       </div>
@@ -24,7 +26,7 @@ export default async function NotificationsPage() {
       {notifications.length === 0 ? (
         <div className="rounded-2xl border border-charcoal-100 bg-white py-16 text-center shadow-card">
           <Bell className="mx-auto h-10 w-10 text-charcoal-300" />
-          <p className="mt-3 text-sm text-charcoal-500">No notifications.</p>
+          <p className="mt-3 text-sm text-charcoal-500">{t("noNotifications")}</p>
         </div>
       ) : (
         <ul className="space-y-2">
@@ -45,11 +47,11 @@ export default async function NotificationsPage() {
                 {!n.read && (
                   <form action={markNotificationRead.bind(null, n.id)}>
                     <button type="submit" className="rounded-lg px-2.5 py-1.5 text-xs font-medium text-brand-600 hover:bg-brand-50">
-                      Mark read
+                      {t("markRead")}
                     </button>
                   </form>
                 )}
-                <DeleteButton action={deleteNotification.bind(null, n.id)} confirmText="Delete this notification?" />
+                <DeleteButton action={deleteNotification.bind(null, n.id)} confirmText={t("deleteNotification")} />
               </div>
             </li>
           ))}

@@ -4,7 +4,7 @@ import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { rateLimit } from "@/lib/rate-limit";
-import { sendMail, renderTemplate } from "@/lib/email";
+import { sendTemplateEmail, detectLocale } from "@/lib/email";
 import { headers } from "next/headers";
 import { isValidPhoneNumber } from "libphonenumber-js";
 import type { Json } from "@/types/database";
@@ -156,32 +156,22 @@ async function sendSubmissionEmails(
             ? "course_registration_received"
             : "admin_notification";
 
+  const locale = detectLocale(vars);
+
   // Admin notification
   if (form.email_notification) {
     const to = form.recipient_email ?? process.env.SMTP_FROM_EMAIL ?? "info@3dmcc.net";
-    const { data: adminTemplate } = await admin
-      .from("email_templates")
-      .select("*")
-      .eq("key", "admin_notification")
-      .maybeSingle();
-
-    const subject = adminTemplate?.subject_en ?? "New submission received";
-    const body = renderTemplate(adminTemplate?.body_en ?? "New submission received.", {
+    const adminVars = {
       type: formType,
       name: String(vars.name ?? ""),
       email: String(vars.email ?? ""),
       phone: String(vars.phone ?? ""),
-    });
-    await sendMail(to, subject, body);
+    };
+    await sendTemplateEmail({ to, locale, templateKey: "admin_notification", vars: adminVars });
   }
 
   // Auto-reply to customer
   if (form.auto_reply && vars.email) {
-    const { data: template } = await admin.from("email_templates").select("*").eq("key", templateKey).maybeSingle();
-    if (template) {
-      const subject = template.subject_en;
-      const body = renderTemplate(template.body_en, vars);
-      await sendMail(String(vars.email), subject, body);
-    }
+    await sendTemplateEmail({ to: String(vars.email), locale, templateKey, vars });
   }
 }

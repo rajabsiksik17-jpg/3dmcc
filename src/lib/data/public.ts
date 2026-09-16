@@ -74,7 +74,7 @@ export const getServiceCategories = cache(async (): Promise<CategoryRow[]> => {
 });
 
 export const getServices = cache(
-  async (opts: { category?: string; featured?: boolean; limit?: number } = {}): Promise<ServiceRow[]> => {
+  async (opts: { category?: string; featured?: boolean; limit?: number; homepage?: boolean } = {}): Promise<ServiceRow[]> => {
     let q = (await sb())
       .from("services")
       .select("*")
@@ -85,6 +85,7 @@ export const getServices = cache(
 
     if (opts.category) q = q.eq("category_id", opts.category);
     if (opts.featured) q = q.eq("featured", true);
+    if (opts.homepage) q = q.eq("show_on_homepage", true);
     if (opts.limit) q = q.limit(opts.limit);
 
     const { data } = await q;

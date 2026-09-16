@@ -2,11 +2,13 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { resetPassword } from "@/app/admin/actions/auth";
 import { Button } from "@/components/ui/button";
 import { AlertCircle, CheckCircle2 } from "lucide-react";
 
 export function ResetPasswordForm() {
+  const t = useTranslations();
   const router = useRouter();
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
@@ -18,11 +20,11 @@ export function ResetPasswordForm() {
     e.preventDefault();
     setError("");
     if (password.length < 8) {
-      setError("Password must be at least 8 characters.");
+      setError(t("passwordTooShort"));
       return;
     }
     if (password !== confirm) {
-      setError("Passwords do not match.");
+      setError(t("passwordsDontMatch"));
       return;
     }
     setLoading(true);
@@ -32,7 +34,7 @@ export function ResetPasswordForm() {
       setDone(true);
       setTimeout(() => router.push("/admin"), 1500);
     } else {
-      setError(res.error ?? "Failed to reset password.");
+      setError(res.error ?? t("resetFailedGeneric"));
     }
   }
 
@@ -41,8 +43,8 @@ export function ResetPasswordForm() {
       <div className="flex min-h-screen items-center justify-center bg-charcoal-50 p-6">
         <div className="w-full max-w-md rounded-2xl border border-charcoal-100 bg-white p-8 text-center shadow-card">
           <CheckCircle2 className="mx-auto h-12 w-12 text-emerald-500" />
-          <h1 className="mt-4 text-xl font-semibold text-charcoal-900">Password updated</h1>
-          <p className="mt-1 text-sm text-charcoal-500">Redirecting to dashboard...</p>
+          <h1 className="mt-4 text-xl font-semibold text-charcoal-900">{t("passwordUpdated")}</h1>
+          <p className="mt-1 text-sm text-charcoal-500">{t("redirecting")}</p>
         </div>
       </div>
     );
@@ -51,14 +53,14 @@ export function ResetPasswordForm() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-charcoal-50 p-6">
       <form onSubmit={onSubmit} className="w-full max-w-md rounded-2xl border border-charcoal-100 bg-white p-8 shadow-card">
-        <h1 className="text-xl font-semibold text-charcoal-900">Reset password</h1>
+        <h1 className="text-xl font-semibold text-charcoal-900">{t("resetPassword")}</h1>
         <div className="mt-6 space-y-4">
           <div>
-            <label className="label">New password</label>
+            <label className="label">{t("newPassword")}</label>
             <input type="password" className="input" value={password} onChange={(e) => setPassword(e.target.value)} required />
           </div>
           <div>
-            <label className="label">Confirm password</label>
+            <label className="label">{t("confirmPassword")}</label>
             <input type="password" className="input" value={confirm} onChange={(e) => setConfirm(e.target.value)} required />
           </div>
         </div>
@@ -69,7 +71,7 @@ export function ResetPasswordForm() {
           </div>
         )}
         <Button type="submit" loading={loading} className="mt-6 w-full">
-          Update password
+          {t("updatePassword")}
         </Button>
       </form>
     </div>

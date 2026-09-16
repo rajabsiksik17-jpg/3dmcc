@@ -2,11 +2,14 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { login, forgotPassword } from "@/app/admin/actions/auth";
 import { Button } from "@/components/ui/button";
 import { AlertCircle } from "lucide-react";
+import { AdminLanguageSwitcher } from "./admin-language-switcher";
 
 export function LoginForm() {
+  const t = useTranslations();
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -24,7 +27,7 @@ export function LoginForm() {
       router.push("/admin");
       router.refresh();
     } else {
-      setError(res.error ?? "Login failed");
+      setError(res.error ?? t("loginFailed"));
     }
   }
 
@@ -32,12 +35,12 @@ export function LoginForm() {
     setInfo("");
     setError("");
     if (!email) {
-      setError("Enter your email address first.");
+      setError(t("enterEmailFirst"));
       return;
     }
     const res = await forgotPassword({ email });
-    if (res.ok) setInfo("Password reset link sent to your email.");
-    else setError(res.error ?? "Failed to send reset email.");
+    if (res.ok) setInfo(t("resetSent"));
+    else setError(res.error ?? t("resetFailed"));
   }
 
   return (
@@ -48,17 +51,20 @@ export function LoginForm() {
             3D
           </span>
           <div>
-            <p className="text-lg font-bold text-charcoal-900">3DMCC</p>
-            <p className="text-xs text-charcoal-500">Admin Dashboard</p>
+            <p className="text-lg font-bold text-charcoal-900">{t("brand")}</p>
+            <p className="text-xs text-charcoal-500">{t("adminDashboard")}</p>
           </div>
         </div>
         <form onSubmit={onSubmit} className="rounded-2xl border border-charcoal-100 bg-white p-8 shadow-card">
-          <h1 className="text-xl font-semibold text-charcoal-900">Sign in</h1>
-          <p className="mt-1 text-sm text-charcoal-500">Access the management dashboard.</p>
+          <div className="flex items-center justify-between">
+            <h1 className="text-xl font-semibold text-charcoal-900">{t("signIn")}</h1>
+            <AdminLanguageSwitcher />
+          </div>
+          <p className="mt-1 text-sm text-charcoal-500">{t("accessDashboard")}</p>
 
           <div className="mt-6 space-y-4">
             <div>
-              <label className="label">Email</label>
+              <label className="label">{t("email")}</label>
               <input
                 type="email"
                 className="input"
@@ -69,7 +75,7 @@ export function LoginForm() {
               />
             </div>
             <div>
-              <label className="label">Password</label>
+              <label className="label">{t("password")}</label>
               <input
                 type="password"
                 className="input"
@@ -94,11 +100,11 @@ export function LoginForm() {
           )}
 
           <Button type="submit" loading={loading} className="mt-6 w-full">
-            Sign in
+            {t("signIn")}
           </Button>
 
           <button type="button" onClick={onForgot} className="mt-4 w-full text-center text-sm text-brand-600 hover:text-brand-700">
-            Forgot password?
+            {t("forgotPassword")}
           </button>
         </form>
       </div>

@@ -3,16 +3,18 @@ import { adminMedia } from "@/lib/admin-data";
 import { deleteMedia } from "@/app/admin/actions/content";
 import { MediaUploader } from "@/components/admin/media-uploader";
 import { DeleteButton } from "@/components/admin/delete-button";
+import { getAdminT } from "@/lib/admin-i18n";
 
 export const dynamic = "force-dynamic";
 
 export default async function MediaPage() {
   await requireAdmin();
+  const { t } = await getAdminT();
   const media = await adminMedia();
 
   return (
     <div>
-      <h1 className="mb-6 text-xl font-semibold text-charcoal-900">Media Library</h1>
+      <h1 className="mb-6 text-xl font-semibold text-charcoal-900">{t("media")}</h1>
 
       <div className="mb-6 rounded-2xl border border-charcoal-100 bg-white p-5 shadow-card">
         <MediaUploader />
@@ -20,7 +22,7 @@ export default async function MediaPage() {
 
       {media.length === 0 ? (
         <div className="rounded-2xl border border-charcoal-100 bg-white py-16 text-center text-sm text-charcoal-500 shadow-card">
-          No media uploaded yet.
+          {t("noMedia")}
         </div>
       ) : (
         <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6">
@@ -42,10 +44,10 @@ export default async function MediaPage() {
                       onClick={() => navigator.clipboard.writeText(m.url!)}
                       className="text-xs text-brand-600 hover:text-brand-700"
                     >
-                      Copy URL
+                      {t("copyUrl")}
                     </button>
                   )}
-                  <DeleteButton action={deleteMedia.bind(null, m.id)} confirmText="Delete this media?" />
+                  <DeleteButton action={deleteMedia.bind(null, m.id)} confirmText={t("deleteMedia")} />
                 </div>
               </div>
             </div>

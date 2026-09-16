@@ -33,6 +33,7 @@ export async function saveService(input: unknown) {
       category_id: z.string().nullable().optional(),
       status: z.enum(["draft", "published"]).default("published"),
       featured: z.boolean().default(false),
+      show_on_homepage: z.boolean().default(true),
       sort_order: z.number().default(0),
       featured_image: z.string().nullable().optional(),
       background_image: z.string().nullable().optional(),
@@ -53,6 +54,7 @@ export async function saveService(input: unknown) {
     category_id: d.category_id ?? null,
     status: d.status,
     featured: d.featured,
+    show_on_homepage: d.show_on_homepage,
     sort_order: d.sort_order,
     featured_image: d.featured_image ?? null,
     background_image: d.background_image ?? null,
@@ -88,13 +90,17 @@ export async function saveCourse(input: unknown) {
     full_description_en: (d.full_description_en as string) ?? null,
     full_description_ar: (d.full_description_ar as string) ?? null,
     category_id: (d.category_id as string) ?? null,
+    icon: (d.icon as string) ?? null,
     duration: (d.duration as string) ?? null,
     delivery_type: (d.delivery_type as string) ?? null,
     instructor_en: (d.instructor_en as string) ?? null,
     instructor_ar: (d.instructor_ar as string) ?? null,
     price: d.price != null ? Number(d.price) : null,
+    offer_price: d.offer_price != null ? Number(d.offer_price) : null,
     currency: (d.currency as string) ?? "JOD",
     availability: (d.availability as string) ?? null,
+    start_date: (d.start_date as string) ?? null,
+    end_date: (d.end_date as string) ?? null,
     featured_image: (d.featured_image as string) ?? null,
     status: (d.status as "draft" | "published") ?? "published",
     featured: Boolean(d.featured),
@@ -133,7 +139,11 @@ export async function saveJob(input: unknown) {
     location_ar: (d.location_ar as string) ?? null,
     employment_type: (d.employment_type as string) ?? null,
     deadline: (d.deadline as string) ?? null,
+    icon: (d.icon as string) ?? null,
+    featured_image: (d.featured_image as string) ?? null,
+    form_id: (d.form_id as string) ?? null,
     status: (d.status as "draft" | "published") ?? "published",
+    featured: Boolean(d.featured),
     sort_order: Number(d.sort_order ?? 0),
   };
   const id = d.id as string | undefined;
@@ -510,6 +520,40 @@ export async function deleteUser(id: string) {
 }
 
 // ---------------------------------------------------------------------------
+// Roles & permissions
+// ---------------------------------------------------------------------------
+export async function saveRole(input: unknown) {
+  await requireSuperAdmin();
+  const d = input as { id?: string; name: string; permissions: string[] };
+  if (!d.name) return { ok: false, error: "Role name is required" };
+
+  const permissions = Array.isArray(d.permissions) ? d.permissions : [];
+
+  if (d.id) {
+    const { error } = await admin()
+      .from("roles")
+      .update({ name: d.name, permissions: permissions as Json })
+      .eq("id", d.id);
+    revalidatePath("/admin");
+    return handle(error);
+  }
+
+  const { error } = await admin()
+    .from("roles")
+    .upsert({ name: d.name, permissions: permissions as Json }, { onConflict: "name" });
+  revalidatePath("/admin");
+  return handle(error);
+}
+
+export async function deleteRole(name: string) {
+  await requireSuperAdmin();
+  if (name === "super_admin") return { ok: false, error: "Cannot delete super_admin" };
+  const { error } = await admin().from("roles").delete().eq("name", name);
+  revalidatePath("/admin");
+  return handle(error);
+}
+
+// ---------------------------------------------------------------------------
 // Forms & fields
 // ---------------------------------------------------------------------------
 export async function saveForm(input: unknown) {
@@ -645,6 +689,35 @@ export async function reorderSection(id: string, direction: "up" | "down") {
   return handle(error);
 }
 
+export async function duplicateSection(id: string) {
+  await requirePermission("pages.update");
+  const { data: section } = await admin().from("page_sections").select("*").eq("id", id).maybeSingle();
+  if (!section) return { ok: false, error: "Not found" };
+  const { error } = await admin().from("page_sections").insert({
+    page_id: section.page_id,
+    type: section.type,
+    position: section.position + 1,
+    visibility: section.visibility,
+    content: section.content,
+    background: section.background,
+    layout: section.layout,
+    animation: section.animation,
+    responsive: section.responsive,
+    status: section.status,
+  });
+  revalidatePath("/", "layout");
+  return handle(error);
+}
+
+export async function reorderSections(ids: string[]) {
+  await requirePermission("pages.update");
+  for (let i = 0; i < ids.length; i++) {
+    await admin().from("page_sections").update({ position: i + 1 }).eq("id", ids[i]);
+  }
+  revalidatePath("/", "layout");
+  return { ok: true };
+}
+
 // ---------------------------------------------------------------------------
 // Media
 // ---------------------------------------------------------------------------
@@ -693,5 +766,147 @@ export async function deleteMedia(id: string) {
   }
   const { error } = await admin().from("media").delete().eq("id", id);
   revalidatePath("/admin");
+  return handle(error);
+}
+
+// ---------------------------------------------------------------------------
+// Duplicate actions
+// ---------------------------------------------------------------------------
+export async function duplicateService(id: string) {
+  await requirePermission("services.create");
+  const { data } = await admin().from("services").select("*").eq("id", id).maybeSingle();
+  if (!data) return { ok: false, error: "Not found" };
+  const { title_en, title_ar, ...rest } = data;
+  const { error } = await admin()
+    .from("services")
+    .insert({
+      ...rest,
+      title_en: `${title_en} (Copy)`,
+      title_ar: `${title_ar} (نسخة)`,
+      slug: `${data.slug}-copy-${Date.now()}`,
+    });
+  revalidatePath("/admin");
+  return handle(error);
+}
+
+export async function duplicateCourse(id: string) {
+  await requirePermission("courses.create");
+  const { data } = await admin().from("courses").select("*").eq("id", id).maybeSingle();
+  if (!data) return { ok: false, error: "Not found" };
+  const { title_en, title_ar, ...rest } = data;
+  const { error } = await admin()
+    .from("courses")
+    .insert({
+      ...rest,
+      title_en: `${title_en} (Copy)`,
+      title_ar: `${title_ar} (نسخة)`,
+      slug: `${data.slug}-copy-${Date.now()}`,
+    });
+  revalidatePath("/admin");
+  return handle(error);
+}
+
+export async function duplicateJob(id: string) {
+  await requirePermission("jobs.create");
+  const { data } = await admin().from("jobs").select("*").eq("id", id).maybeSingle();
+  if (!data) return { ok: false, error: "Not found" };
+  const { title_en, title_ar, ...rest } = data;
+  const { error } = await admin()
+    .from("jobs")
+    .insert({
+      ...rest,
+      title_en: `${title_en} (Copy)`,
+      title_ar: `${title_ar} (نسخة)`,
+      slug: `${data.slug}-copy-${Date.now()}`,
+    });
+  revalidatePath("/admin");
+  return handle(error);
+}
+
+export async function duplicateForm(id: string) {
+  await requireAdmin();
+  const { data } = await admin().from("forms").select("*").eq("id", id).maybeSingle();
+  if (!data) return { ok: false, error: "Not found" };
+  const { data: inserted, error } = await admin()
+    .from("forms")
+    .insert({
+      name: `${data.name} (Copy)`,
+      slug: `${data.slug}-copy-${Date.now()}`,
+      description: data.description,
+      type: data.type,
+      status: data.status,
+      success_message_en: data.success_message_en,
+      success_message_ar: data.success_message_ar,
+      email_notification: data.email_notification,
+      auto_reply: data.auto_reply,
+      recipient_email: data.recipient_email,
+    })
+    .select()
+    .single();
+  if (error) return { ok: false, error: error.message };
+
+  const { data: fields } = await admin().from("form_fields").select("*").eq("form_id", id);
+  if (fields && inserted) {
+    await admin()
+      .from("form_fields")
+      .insert(
+        fields.map((f) => ({
+          form_id: inserted.id,
+          label_en: f.label_en,
+          label_ar: f.label_ar,
+          name: f.name,
+          type: f.type,
+          placeholder_en: f.placeholder_en,
+          placeholder_ar: f.placeholder_ar,
+          required: f.required,
+          width: f.width,
+          sort_order: f.sort_order,
+        }))
+      );
+  }
+  revalidatePath("/admin");
+  return { ok: true };
+}
+
+// ---------------------------------------------------------------------------
+// Categories
+// ---------------------------------------------------------------------------
+export async function saveCategory(input: unknown) {
+  await requireAdmin();
+  const d = input as Record<string, unknown>;
+  const kind = (d.kind as string) ?? "course";
+  const payload = {
+    name_en: String(d.name_en ?? ""),
+    name_ar: String(d.name_ar ?? ""),
+    slug: String(d.slug ?? "").trim().toLowerCase().replace(/[^a-z0-9-]/g, "-") || slugify(String(d.name_en ?? "")),
+    icon: (d.icon as string) ?? null,
+    image: (d.image as string) ?? null,
+    description_en: (d.description_en as string) ?? null,
+    description_ar: (d.description_ar as string) ?? null,
+    status: (d.status as string) ?? "active",
+    featured: Boolean(d.featured),
+    sort_order: Number(d.sort_order ?? 0),
+  };
+  const id = d.id as string | undefined;
+
+  const q = kind === "course"
+    ? admin().from("course_categories")
+    : admin().from("service_categories");
+
+  const { error } = id
+    ? await q.update(payload).eq("id", id)
+    : await q.insert(payload);
+  revalidatePath("/", "layout");
+  return handle(error);
+}
+
+export async function deleteCategory(input: unknown) {
+  await requireAdmin();
+  const d = input as { id: string; kind: string };
+  const q = d.kind === "course"
+    ? admin().from("course_categories")
+    : admin().from("service_categories");
+  const { error } = await q.delete().eq("id", d.id);
+  revalidatePath("/", "layout");
   return handle(error);
 }

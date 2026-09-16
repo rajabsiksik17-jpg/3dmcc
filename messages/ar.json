@@ -190,6 +190,13 @@
     "internship": "تدريب",
     "freelance": "عمل حر"
   },
+  "availability": {
+    "open": "متاح للتسجيل",
+    "full": "مكتمل",
+    "closed": "مغلق"
+  },
+  "sale": "عرض",
+  "savePercent": "وفّر {percent}%",
   "status": {
     "new": "جديد",
     "contacted": "تم التواصل",

@@ -216,7 +216,7 @@ function ImageTextSection({ content }: { content: Data }) {
 async function ServicesGridSection({ content }: { content: Data }) {
   const locale = (await getLocale()) as "en" | "ar";
   const limit = num(content, "limit") ?? 6;
-  const services = await getServices({ limit });
+  const services = await getServices({ limit, homepage: true });
 
   if (services.length === 0) return null;
 

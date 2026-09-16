@@ -18,6 +18,7 @@ import type {
   ProfileRow,
   IntegrationRow,
   MediaRow,
+  RoleRow,
 } from "@/types/database";
 
 const admin = () => createAdminClient();
@@ -155,7 +156,22 @@ export async function adminCategories(): Promise<{ services: CategoryRow[]; cour
   return { services: s.data ?? [], courses: c.data ?? [] };
 }
 
+export async function adminCourseCategories(): Promise<CategoryRow[]> {
+  const { data } = await admin().from("course_categories").select("*").order("sort_order");
+  return data ?? [];
+}
+
+export async function adminServiceCategories(): Promise<CategoryRow[]> {
+  const { data } = await admin().from("service_categories").select("*").order("sort_order");
+  return data ?? [];
+}
+
 export async function adminMedia(): Promise<MediaRow[]> {
   const { data } = await admin().from("media").select("*").order("created_at", { ascending: false }).limit(200);
+  return data ?? [];
+}
+
+export async function adminRoles(): Promise<RoleRow[]> {
+  const { data } = await admin().from("roles").select("*").order("name");
   return data ?? [];
 }

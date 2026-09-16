@@ -135,13 +135,35 @@ export default async function CourseDetailPage({
               <h3 className="font-semibold text-charcoal-900">
                 {locale === "ar" ? "سجّل الآن" : "Register Now"}
               </h3>
-              {course.price != null && (
-                <p className="mt-2 text-2xl font-bold text-brand-600">
-                  {course.price} {course.currency}
-                </p>
-              )}
+              {(() => {
+                const hasOffer =
+                  course.offer_price != null && course.price != null && course.offer_price < course.price;
+                if (hasOffer) {
+                  return (
+                    <div className="mt-2">
+                      <span className="text-2xl font-bold text-brand-600">
+                        {course.offer_price} {course.currency}
+                      </span>
+                      <span className="ms-2 text-sm text-charcoal-400 line-through">
+                        {course.price} {course.currency}
+                      </span>
+                    </div>
+                  );
+                }
+                return course.price != null ? (
+                  <p className="mt-2 text-2xl font-bold text-brand-600">
+                    {course.price} {course.currency}
+                  </p>
+                ) : null;
+              })()}
               {course.availability && (
-                <p className="mt-1 text-sm text-charcoal-600">{course.availability}</p>
+                <p className="mt-1 text-sm text-charcoal-600">
+                  {["open", "full", "closed"].includes(course.availability)
+                    ? locale === "ar"
+                      ? { open: "متاح للتسجيل", full: "مكتمل", closed: "مغلق" }[course.availability as "open" | "full" | "closed"]
+                      : { open: "Open for registration", full: "Full", closed: "Closed" }[course.availability as "open" | "full" | "closed"]
+                    : course.availability}
+                </p>
               )}
               <a href="#register" className="btn-primary mt-4 w-full">
                 {locale === "ar" ? "سجّل في الدورة" : "Register for Course"}

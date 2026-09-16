@@ -190,6 +190,13 @@
     "internship": "Internship",
     "freelance": "Freelance"
   },
+  "availability": {
+    "open": "Open for registration",
+    "full": "Full",
+    "closed": "Closed"
+  },
+  "sale": "Offer",
+  "savePercent": "Save {percent}%",
   "status": {
     "new": "New",
     "contacted": "Contacted",
