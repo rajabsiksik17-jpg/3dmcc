@@ -9,7 +9,7 @@ export const dynamic = "force-dynamic";
 
 export default async function NotificationsPage() {
   await requireAdmin();
-  const { t } = await getAdminT();
+  const { t, locale } = await getAdminT();
   const notifications = await adminNotifications();
 
   return (
@@ -39,8 +39,8 @@ export default async function NotificationsPage() {
             >
               <span className={`mt-1.5 h-2.5 w-2.5 shrink-0 rounded-full ${n.read ? "bg-charcoal-200" : "bg-brand-500"}`} />
               <div className="min-w-0 flex-1">
-                <p className="text-sm font-semibold text-charcoal-900">{n.title_en}</p>
-                <p className="mt-0.5 truncate text-sm text-charcoal-500">{n.body_en}</p>
+                <p className="text-sm font-semibold text-charcoal-900">{locale === "ar" ? n.title_ar : n.title_en}</p>
+                <p className="mt-0.5 truncate text-sm text-charcoal-500">{locale === "ar" ? n.body_ar : n.body_en}</p>
                 <p className="mt-1 text-xs text-charcoal-400">{new Date(n.created_at).toLocaleString()}</p>
               </div>
               <div className="flex items-center gap-1">

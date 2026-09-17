@@ -22,6 +22,7 @@ import {
   getFormFields,
 } from "@/lib/data/public";
 import { ContactBlock } from "./contact-block";
+import { HeroSlider, type Slide as HeroSlide } from "./hero-slider";
 import { ArrowRight, Mail, MapPin, Phone, Clock } from "lucide-react";
 
 // ---------------------------------------------------------------------------
@@ -73,6 +74,11 @@ function Section({ children, className }: { children: ReactNode; className?: str
 function HeroSection({ content }: { content: Data }) {
   const locale = useLocale() as "en" | "ar";
   const t = useTranslations("common");
+
+  const slides = Array.isArray(content.slides) ? (content.slides as HeroSlide[]) : [];
+  if (slides.length > 0) {
+    return <HeroSlider slides={slides} autoplay={content.autoplay !== false} duration={typeof content.duration === "number" ? content.duration : 5000} />;
+  }
 
   return (
     <section className="relative overflow-hidden bg-charcoal-950 py-24 sm:py-32">

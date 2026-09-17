@@ -19,7 +19,7 @@ const FIELDS: FieldDef[] = [
 
 export default async function FaqsPage({ searchParams }: { searchParams: Promise<{ edit?: string }> }) {
   await requireAdmin();
-  const { t } = await getAdminT();
+  const { t, locale } = await getAdminT();
   const { edit } = await searchParams;
   const faqs = await adminFaqs();
   const editing = edit && edit !== "new" ? faqs.find((f) => f.id === edit) : undefined;
@@ -55,7 +55,7 @@ export default async function FaqsPage({ searchParams }: { searchParams: Promise
           <tbody className="divide-y divide-charcoal-100">
             {faqs.map((f) => (
               <tr key={f.id} className="hover:bg-charcoal-50">
-                <td className="px-4 py-3 font-medium text-charcoal-900">{f.question_en}</td>
+                <td className="px-4 py-3 font-medium text-charcoal-900">{locale === "ar" ? f.question_ar : f.question_en}</td>
                 <td className="px-4 py-3 text-charcoal-600">{f.published ? t("yes") : t("no")}</td>
                 <td className="px-4 py-3">
                   <div className="flex items-center justify-end gap-1">

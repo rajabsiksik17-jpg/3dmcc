@@ -1,7 +1,7 @@
 "use client";
 
 import { parsePhoneNumberFromString, isValidPhoneNumber } from "libphonenumber-js";
-import { COUNTRIES, flagEmoji, getCountryByCode } from "@/lib/countries";
+import { COUNTRIES, flagEmoji, getCountryByCode, countryName } from "@/lib/countries";
 import { useLocale } from "next-intl";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { ChevronDown, Check, Search } from "lucide-react";
@@ -50,7 +50,7 @@ export function PhoneInput({
     const q = query.trim().toLowerCase();
     if (!q) return COUNTRIES;
     return COUNTRIES.filter(
-      (c) => c.name.toLowerCase().includes(q) || c.dialCode.includes(q)
+      (c) => c.name.toLowerCase().includes(q) || c.nameAr.includes(q) || c.dialCode.includes(q)
     );
   }, [query]);
 
@@ -145,7 +145,7 @@ export function PhoneInput({
                   )}
                 >
                   <span className="text-base">{flagEmoji(c.code)}</span>
-                  <span className="flex-1 text-start">{c.name}</span>
+                  <span className="flex-1 text-start">{countryName(c, locale)}</span>
                   <span className="text-charcoal-500" dir="ltr">{c.dialCode}</span>
                   {c.code === country.code && <Check className="h-4 w-4 text-brand-600" />}
                 </button>

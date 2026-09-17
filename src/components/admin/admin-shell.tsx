@@ -7,6 +7,7 @@ import { useTranslations } from "next-intl";
 import { cn } from "@/lib/utils";
 import { logout } from "@/app/admin/actions/auth";
 import { AdminLanguageSwitcher } from "./admin-language-switcher";
+import { NotificationBell } from "./notification-bell";
 import {
   LayoutDashboard,
   FileText,
@@ -62,6 +63,9 @@ export function AdminShell({
     { label: t("faqs"), href: "/admin/faqs", icon: HelpCircle },
     { label: t("media"), href: "/admin/media", icon: Image },
     { label: t("forms"), href: "/admin/forms", icon: Layers, group: t("groupForms") },
+    { label: t("courseRequests"), href: "/admin/course-requests", icon: Inbox },
+    { label: t("contactRequests"), href: "/admin/contact-requests", icon: Inbox },
+    { label: t("jobApplications"), href: "/admin/job-applications", icon: Inbox },
     { label: t("submissions"), href: "/admin/submissions", icon: Inbox, badge: unread },
     { label: t("notifications"), href: "/admin/notifications", icon: Bell, badge: unread },
     { label: t("company"), href: "/admin/company", icon: Building2, group: t("groupCompany") },
@@ -171,6 +175,7 @@ export function AdminShell({
           </div>
           <div className="flex items-center gap-1">
             <AdminLanguageSwitcher />
+            <NotificationBell initialUnread={unread} />
             <Link
               href="/"
               target="_blank"

@@ -240,7 +240,7 @@ export function DynamicForm({
                   <option value="">{t("chooseOption")}</option>
                   {COUNTRIES.map((c) => (
                     <option key={c.code} value={c.name}>
-                      {c.name}
+                      {locale === "ar" ? c.nameAr : c.name}
                     </option>
                   ))}
                 </select>

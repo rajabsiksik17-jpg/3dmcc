@@ -212,9 +212,19 @@ export async function sendTemplateEmail(opts: {
 
   if (!template) return { ok: false, error: "Template not found" };
 
-  const subject = opts.locale === "ar" ? template.subject_ar : template.subject_en;
+  const companyName = opts.locale === "ar" ? settings?.name_ar ?? "3DMCC" : settings?.name_en ?? "3DMCC";
+  const companyVars: Record<string, string | number> = {
+    company_name: companyName,
+    company_email: settings?.email ?? "",
+    company_phone: settings?.phone ?? "",
+    company_address: opts.locale === "ar" ? settings?.address_ar ?? "" : settings?.address_en ?? "",
+    website_url: settings?.website ?? "",
+  };
+
+  const vars = { ...companyVars, ...opts.vars };
+  const subject = renderTemplate(opts.locale === "ar" ? template.subject_ar : template.subject_en, vars);
   const rawBody = opts.locale === "ar" ? template.body_ar : template.body_en;
-  const body = renderTemplate(rawBody, opts.vars);
+  const body = renderTemplate(rawBody, vars);
 
   const socials = [
     { key: "facebook", url: settings?.facebook },
@@ -227,7 +237,7 @@ export async function sendTemplateEmail(opts: {
   const html = buildEmailHtml({
     locale: opts.locale,
     company: {
-      name: opts.locale === "ar" ? settings?.name_ar ?? "3DMCC" : settings?.name_en ?? "3DMCC",
+      name: companyName,
       logo_url: settings?.logo_url,
       email: settings?.email,
       phone: settings?.phone,

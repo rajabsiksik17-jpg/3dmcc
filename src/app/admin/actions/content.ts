@@ -275,6 +275,12 @@ export async function deleteSubmission(id: string) {
   return handle(error);
 }
 
+export async function markSubmissionRead(id: string): Promise<void> {
+  await requirePermission("applications.view");
+  await admin().from("form_submissions").update({ read: true }).eq("id", id);
+  revalidatePath("/admin");
+}
+
 export async function archiveSubmission(id: string) {
   await requirePermission("applications.update");
   const { error } = await admin().from("form_submissions").update({ status: "archived" }).eq("id", id);

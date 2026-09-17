@@ -21,7 +21,7 @@ const FIELDS: FieldDef[] = [
 
 export default async function PagesPage({ searchParams }: { searchParams: Promise<{ edit?: string }> }) {
   await requireAdmin();
-  const { t } = await getAdminT();
+  const { t, locale } = await getAdminT();
   const { edit } = await searchParams;
   const pages = await adminPages();
   const editing = edit && edit !== "new" ? pages.find((p) => p.id === edit) : undefined;
@@ -58,7 +58,7 @@ export default async function PagesPage({ searchParams }: { searchParams: Promis
           <tbody className="divide-y divide-charcoal-100">
             {pages.map((p) => (
               <tr key={p.id} className="hover:bg-charcoal-50">
-                <td className="px-4 py-3 font-medium text-charcoal-900">{p.title_en}</td>
+                <td className="px-4 py-3 font-medium text-charcoal-900">{locale === "ar" ? p.title_ar : p.title_en}</td>
                 <td className="px-4 py-3 text-charcoal-600">{p.slug}</td>
                 <td className="px-4 py-3"><span className={p.status === "published" ? "text-emerald-600" : "text-charcoal-400"}>{t(p.status)}</span></td>
                 <td className="px-4 py-3">

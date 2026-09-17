@@ -60,11 +60,11 @@ function fields(categoryOptions: { value: string; label: string }[], formOptions
 
 export default async function CoursesPage({ searchParams }: { searchParams: Promise<{ edit?: string }> }) {
   await requireAdmin();
-  const { t } = await getAdminT();
+  const { t, locale } = await getAdminT();
   const { edit } = await searchParams;
   const [courses, { courses: categories }, forms, allFaqs] = await Promise.all([adminCourses(), adminCategories(), adminForms(), adminFaqs()]);
 
-  const categoryOptions = categories.map((c) => ({ value: c.id, label: c.name_en }));
+  const categoryOptions = categories.map((c) => ({ value: c.id, label: locale === "ar" ? c.name_ar : c.name_en }));
   const formOptions = forms
     .filter((f) => f.type === "course" || f.type === "custom")
     .map((f) => ({ value: f.id, label: f.name }));
@@ -108,8 +108,8 @@ export default async function CoursesPage({ searchParams }: { searchParams: Prom
           <tbody className="divide-y divide-charcoal-100">
             {courses.map((c) => (
               <tr key={c.id} className="hover:bg-charcoal-50">
-                <td className="px-4 py-3 font-medium text-charcoal-900">{c.title_en}</td>
-                <td className="px-4 py-3 text-charcoal-600">{categories.find((x) => x.id === c.category_id)?.name_en ?? "—"}</td>
+                <td className="px-4 py-3 font-medium text-charcoal-900">{locale === "ar" ? c.title_ar : c.title_en}</td>
+                <td className="px-4 py-3 text-charcoal-600">{(() => { const x = categories.find((y) => y.id === c.category_id); return x ? (locale === "ar" ? x.name_ar : x.name_en) : "—"; })()}</td>
                 <td className="px-4 py-3 text-charcoal-600">{c.duration ?? "—"}</td>
                 <td className="px-4 py-3"><span className={c.status === "published" ? "text-emerald-600" : "text-charcoal-400"}>{t(c.status)}</span></td>
                 <td className="px-4 py-3">

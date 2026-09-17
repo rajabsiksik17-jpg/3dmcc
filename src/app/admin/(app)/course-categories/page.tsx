@@ -23,7 +23,7 @@ const FIELDS: FieldDef[] = [
 
 export default async function CourseCategoriesPage({ searchParams }: { searchParams: Promise<{ edit?: string }> }) {
   await requireAdmin();
-  const { t } = await getAdminT();
+  const { t, locale } = await getAdminT();
   const { edit } = await searchParams;
   const categories = await adminCourseCategories();
   const editing = edit && edit !== "new" ? categories.find((c) => c.id === edit) : undefined;
@@ -60,7 +60,7 @@ export default async function CourseCategoriesPage({ searchParams }: { searchPar
           <tbody className="divide-y divide-charcoal-100">
             {categories.map((c) => (
               <tr key={c.id} className="hover:bg-charcoal-50">
-                <td className="px-4 py-3 font-medium text-charcoal-900">{c.name_en}</td>
+                <td className="px-4 py-3 font-medium text-charcoal-900">{locale === "ar" ? c.name_ar : c.name_en}</td>
                 <td className="px-4 py-3"><span className={c.status === "active" ? "text-emerald-600" : "text-charcoal-400"}>{t(c.status ?? "active")}</span></td>
                 <td className="px-4 py-3 text-charcoal-600">{c.sort_order}</td>
                 <td className="px-4 py-3">

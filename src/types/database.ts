@@ -264,6 +264,7 @@ export type FormSubmissionRow = {
   status: string;
   assigned_to: string | null;
   notes: string | null;
+  read: boolean;
   ip_address: string | null;
   created_at: string;
   updated_at: string;

@@ -26,7 +26,7 @@ const FIELDS: FieldDef[] = [
 
 export default async function TeamPage({ searchParams }: { searchParams: Promise<{ edit?: string }> }) {
   await requireAdmin();
-  const { t } = await getAdminT();
+  const { t, locale } = await getAdminT();
   const { edit } = await searchParams;
   const team = await adminTeam();
   const editing = edit && edit !== "new" ? team.find((x) => x.id === edit) : undefined;
@@ -64,8 +64,8 @@ export default async function TeamPage({ searchParams }: { searchParams: Promise
           <tbody className="divide-y divide-charcoal-100">
             {team.map((m) => (
               <tr key={m.id} className="hover:bg-charcoal-50">
-                <td className="px-4 py-3 font-medium text-charcoal-900">{m.name_en}</td>
-                <td className="px-4 py-3 text-charcoal-600">{m.position_en}</td>
+                <td className="px-4 py-3 font-medium text-charcoal-900">{locale === "ar" ? m.name_ar : m.name_en}</td>
+                <td className="px-4 py-3 text-charcoal-600">{locale === "ar" ? m.position_ar : m.position_en}</td>
                 <td className="px-4 py-3 text-charcoal-600">{m.department ?? "—"}</td>
                 <td className="px-4 py-3 text-charcoal-600">{m.active ? t("yes") : t("no")}</td>
                 <td className="px-4 py-3">

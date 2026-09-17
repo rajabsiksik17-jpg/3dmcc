@@ -90,16 +90,8 @@ export function SectionEditor({
       )}
 
       {type === "hero" && (
-        <div className="space-y-3 rounded-xl bg-charcoal-50 p-4">
-          <ButtonFields
-            content={content}
-            onChange={(label, url) => { set("primary_label_en", label.en); set("primary_label_ar", label.ar); set("primary_url", url); }}
-          />
-          <ButtonFields
-            secondary
-            content={content}
-            onChange={(label, url) => { set("secondary_label_en", label.en); set("secondary_label_ar", label.ar); set("secondary_url", url); }}
-          />
+        <div className="space-y-3">
+          <SlidesEditor slides={arr(content, "slides")} onChange={(slides) => set("slides", slides)} />
         </div>
       )}
 
@@ -166,6 +158,55 @@ export function SectionEditor({
       )}
 
       {["spacer", "divider"].includes(type) && <p className="text-sm text-charcoal-500">{t("noFields")}</p>}
+    </div>
+  );
+}
+
+function SlidesEditor({ slides, onChange }: { slides: Record<string, unknown>[]; onChange: (slides: Record<string, unknown>[]) => void }) {
+  function update(index: number, patch: Record<string, unknown>) {
+    onChange(slides.map((s, i) => (i === index ? { ...s, ...patch } : s)));
+  }
+  function add() {
+    onChange([...slides, { overlay: 0.6 }]);
+  }
+  function remove(index: number) {
+    onChange(slides.filter((_, i) => i !== index));
+  }
+
+  return (
+    <div className="space-y-3 rounded-xl bg-charcoal-50 p-4">
+      <div className="flex items-center justify-between">
+        <p className="text-xs font-semibold uppercase tracking-wider text-charcoal-500">Slides</p>
+        <button type="button" onClick={add} className="inline-flex items-center gap-1 rounded-lg px-2 py-1 text-xs font-medium text-brand-600 hover:bg-brand-50">
+          <Plus className="h-3.5 w-3.5" /> Add Slide
+        </button>
+      </div>
+      {slides.length === 0 && <p className="text-sm text-charcoal-400">No slides. Add slides to enable the hero slider.</p>}
+      {slides.map((slide, i) => (
+        <div key={i} className="rounded-xl border border-charcoal-100 bg-white p-4">
+          <div className="mb-3 flex items-center justify-between">
+            <span className="text-xs font-semibold text-charcoal-500">Slide {i + 1}</span>
+            <button type="button" onClick={() => remove(i)} className="rounded-lg p-1 text-red-500 hover:bg-red-50"><Trash2 className="h-4 w-4" /></button>
+          </div>
+          <BilingualText
+            labelEn="Badge (English)"
+            labelAr="Badge (Arabic)"
+            en={str(slide, "badge_en")}
+            ar={str(slide, "badge_ar")}
+            onChange={(en, ar) => update(i, { badge_en: en, badge_ar: ar })}
+          />
+          <div className="mt-3"><BilingualText labelEn="Title (English)" labelAr="Title (Arabic)" en={str(slide, "title_en")} ar={str(slide, "title_ar")} onChange={(en, ar) => update(i, { title_en: en, title_ar: ar })} /></div>
+          <div className="mt-3"><BilingualTextarea labelEn="Subtitle (English)" labelAr="Subtitle (Arabic)" en={str(slide, "subtitle_en")} ar={str(slide, "subtitle_ar")} onChange={(en, ar) => update(i, { subtitle_en: en, subtitle_ar: ar })} /></div>
+          <div className="mt-3"><ImageField label="Background Image" value={str(slide, "image")} onChange={(v) => update(i, { image: v })} /></div>
+          <div className="mt-3 grid gap-3 sm:grid-cols-2">
+            <BilingualText labelEn="Button 1 Label (English)" labelAr="Button 1 Label (Arabic)" en={str(slide, "primary_label_en")} ar={str(slide, "primary_label_ar")} onChange={(en, ar) => update(i, { primary_label_en: en, primary_label_ar: ar })} />
+            <div><label className="label">Button 1 URL</label><input className="input" value={str(slide, "primary_url")} placeholder="/services" onChange={(e) => update(i, { primary_url: e.target.value })} /></div>
+            <BilingualText labelEn="Button 2 Label (English)" labelAr="Button 2 Label (Arabic)" en={str(slide, "secondary_label_en")} ar={str(slide, "secondary_label_ar")} onChange={(en, ar) => update(i, { secondary_label_en: en, secondary_label_ar: ar })} />
+            <div><label className="label">Button 2 URL</label><input className="input" value={str(slide, "secondary_url")} placeholder="/contact" onChange={(e) => update(i, { secondary_url: e.target.value })} /></div>
+          </div>
+          <div className="mt-3"><label className="label">Overlay opacity (0-1)</label><input className="input max-w-[120px]" type="number" step="0.1" min="0" max="1" value={typeof slide.overlay === "number" ? slide.overlay : 0.6} onChange={(e) => update(i, { overlay: Number(e.target.value) })} /></div>
+        </div>
+      ))}
     </div>
   );
 }

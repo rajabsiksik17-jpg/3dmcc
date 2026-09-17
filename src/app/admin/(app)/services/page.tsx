@@ -32,11 +32,11 @@ function fields(categoryOptions: { value: string; label: string }[], formOptions
 
 export default async function ServicesPage({ searchParams }: { searchParams: Promise<{ edit?: string }> }) {
   await requireAdmin();
-  const { t } = await getAdminT();
+  const { t, locale } = await getAdminT();
   const { edit } = await searchParams;
   const [services, { services: categories }, forms] = await Promise.all([adminServices(), adminCategories(), adminForms()]);
 
-  const categoryOptions = categories.map((c) => ({ value: c.id, label: c.name_en }));
+  const categoryOptions = categories.map((c) => ({ value: c.id, label: locale === "ar" ? c.name_ar : c.name_en }));
   const formOptions = forms
     .filter((f) => f.type === "service" || f.type === "custom" || f.type === "contact")
     .map((f) => ({ value: f.id, label: f.name }));
@@ -76,9 +76,9 @@ export default async function ServicesPage({ searchParams }: { searchParams: Pro
           <tbody className="divide-y divide-charcoal-100">
             {services.map((s) => (
               <tr key={s.id} className="hover:bg-charcoal-50">
-                <td className="px-4 py-3 font-medium text-charcoal-900">{s.title_en}</td>
+                <td className="px-4 py-3 font-medium text-charcoal-900">{locale === "ar" ? s.title_ar : s.title_en}</td>
                 <td className="px-4 py-3 text-charcoal-600">
-                  {categories.find((c) => c.id === s.category_id)?.name_en ?? "—"}
+                  {(() => { const c = categories.find((x) => x.id === s.category_id); return c ? (locale === "ar" ? c.name_ar : c.name_en) : "—"; })()}
                 </td>
                 <td className="px-4 py-3">
                   <span className={s.status === "published" ? "text-emerald-600" : "text-charcoal-400"}>

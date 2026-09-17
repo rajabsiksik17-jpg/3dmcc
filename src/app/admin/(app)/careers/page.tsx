@@ -54,7 +54,7 @@ function fields(formOptions: { value: string; label: string }[]): FieldDef[] {
 
 export default async function CareersPage({ searchParams }: { searchParams: Promise<{ edit?: string }> }) {
   await requireAdmin();
-  const { t } = await getAdminT();
+  const { t, locale } = await getAdminT();
   const { edit } = await searchParams;
   const [jobs, forms, allFaqs] = await Promise.all([adminJobs(), adminForms(), adminFaqs()]);
 
@@ -101,8 +101,8 @@ export default async function CareersPage({ searchParams }: { searchParams: Prom
           <tbody className="divide-y divide-charcoal-100">
             {jobs.map((j) => (
               <tr key={j.id} className="hover:bg-charcoal-50">
-                <td className="px-4 py-3 font-medium text-charcoal-900">{j.title_en}</td>
-                <td className="px-4 py-3 text-charcoal-600">{j.department_en ?? "—"}</td>
+                <td className="px-4 py-3 font-medium text-charcoal-900">{locale === "ar" ? j.title_ar : j.title_en}</td>
+                <td className="px-4 py-3 text-charcoal-600">{locale === "ar" ? j.department_ar : j.department_en}</td>
                 <td className="px-4 py-3 text-charcoal-600">{j.employment_type ? t(j.employment_type) : "—"}</td>
                 <td className="px-4 py-3"><span className={j.status === "published" ? "text-emerald-600" : "text-charcoal-400"}>{t(j.status)}</span></td>
                 <td className="px-4 py-3">

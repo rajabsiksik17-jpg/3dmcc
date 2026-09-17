@@ -127,7 +127,17 @@ export async function submitForm(input: unknown): Promise<{ ok: boolean; error?:
 
   // Send emails (best effort — never block submission on email failure)
   try {
-    await sendSubmissionEmails(formType, formId, { ...cleaned, name: customerName, email, phone, submission_date: new Date().toISOString() });
+    await sendSubmissionEmails({
+      formType,
+      formId,
+      entityType: entityType ?? null,
+      entityId: entityId ?? null,
+      submissionId: String(submissionId),
+      cleaned,
+      customerName,
+      email,
+      phone,
+    });
   } catch {
     // ignore email errors for the user
   }
@@ -135,11 +145,48 @@ export async function submitForm(input: unknown): Promise<{ ok: boolean; error?:
   return { ok: true };
 }
 
-async function sendSubmissionEmails(
-  formType: string,
-  formId: string,
-  vars: Record<string, string | number>
-) {
+const TYPE_LABELS: Record<string, { en: string; ar: string }> = {
+  course: { en: "Course", ar: "الدورة" },
+  career: { en: "Job", ar: "الوظيفة" },
+  service: { en: "Service", ar: "الخدمة" },
+  contact: { en: "Subject", ar: "الموضوع" },
+  custom: { en: "Form", ar: "النموذج" },
+};
+
+async function resolveEntityName(entityType: string | null, entityId: string | null): Promise<{ en: string; ar: string } | null> {
+  if (!entityType || !entityId) return null;
+  const admin = createAdminClient();
+  try {
+    if (entityType === "course") {
+      const { data } = await admin.from("courses").select("title_en,title_ar").eq("id", entityId).maybeSingle();
+      return data ? { en: data.title_en, ar: data.title_ar } : null;
+    }
+    if (entityType === "career" || entityType === "job") {
+      const { data } = await admin.from("jobs").select("title_en,title_ar").eq("id", entityId).maybeSingle();
+      return data ? { en: data.title_en, ar: data.title_ar } : null;
+    }
+    if (entityType === "service") {
+      const { data } = await admin.from("services").select("title_en,title_ar").eq("id", entityId).maybeSingle();
+      return data ? { en: data.title_en, ar: data.title_ar } : null;
+    }
+  } catch {
+    return null;
+  }
+  return null;
+}
+
+async function sendSubmissionEmails(opts: {
+  formType: string;
+  formId: string;
+  entityType: string | null;
+  entityId: string | null;
+  submissionId: string;
+  cleaned: Record<string, unknown>;
+  customerName: string;
+  email: string;
+  phone: string;
+}) {
+  const { formType, formId, entityType, entityId, submissionId, cleaned, customerName, email, phone } = opts;
   const admin = createAdminClient();
 
   const { data: form } = await admin.from("forms").select("*").eq("id", formId).maybeSingle();
@@ -156,22 +203,51 @@ async function sendSubmissionEmails(
             ? "course_registration_received"
             : "admin_notification";
 
-  const locale = detectLocale(vars);
+  const entity = await resolveEntityName(entityType, entityId);
+  const locale = detectLocale(cleaned);
+
+  const subject = String(cleaned.subject ?? "");
+  const message = String(cleaned.message ?? cleaned.project_details ?? cleaned.cover_letter ?? "");
+  const entityName = locale === "ar" ? entity?.ar ?? "" : entity?.en ?? "";
+  const typeLabel = TYPE_LABELS[formType] ?? TYPE_LABELS.custom;
+
+  const requestDate = new Date().toLocaleString(locale === "ar" ? "ar-JO" : "en-GB", {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+
+  const baseVars: Record<string, string | number> = {
+    customer_name: customerName,
+    request_id: submissionId.slice(0, 8).toUpperCase(),
+    request_date: requestDate,
+    customer_email: email,
+    customer_phone: phone,
+    subject,
+    message,
+    company_name: "3DMCC",
+  };
+
+  if (formType === "course") baseVars.course_name = entityName;
+  if (formType === "career") baseVars.job_title = entityName;
+  if (formType === "service") baseVars.service_name = entityName;
 
   // Admin notification
   if (form.email_notification) {
     const to = form.recipient_email ?? process.env.SMTP_FROM_EMAIL ?? "info@3dmcc.net";
-    const adminVars = {
-      type: formType,
-      name: String(vars.name ?? ""),
-      email: String(vars.email ?? ""),
-      phone: String(vars.phone ?? ""),
+    const adminVars: Record<string, string | number> = {
+      ...baseVars,
+      type: locale === "ar" ? typeLabel.ar : typeLabel.en,
+      entity_name: entityName,
+      entity_label: locale === "ar" ? typeLabel.ar : typeLabel.en,
     };
     await sendTemplateEmail({ to, locale, templateKey: "admin_notification", vars: adminVars });
   }
 
   // Auto-reply to customer
-  if (form.auto_reply && vars.email) {
-    await sendTemplateEmail({ to: String(vars.email), locale, templateKey, vars });
+  if (form.auto_reply && email) {
+    await sendTemplateEmail({ to: email, locale, templateKey, vars: baseVars });
   }
 }
