@@ -7,6 +7,7 @@ import {
   getFormById,
   getFormFields,
   getFaqs,
+  getGlobalFaqs,
 } from "@/lib/data/public";
 import { localized, absoluteUrl, formatDate } from "@/lib/utils";
 import { useLocale } from "next-intl";
@@ -57,12 +58,15 @@ export default async function CourseDetailPage({
   const course = await getCourseBySlug(slug);
   if (!course) notFound();
 
-  const [allCourses, form, fields, faqs] = await Promise.all([
+  const [allCourses, form, fields, courseFaqs, globalFaqs] = await Promise.all([
     getCourses(),
     course.form_id ? getFormById(course.form_id) : null,
     course.form_id ? getFormFields(course.form_id) : [],
-    getFaqs(),
+    getFaqs({ courseId: course.id }),
+    getGlobalFaqs(),
   ]);
+
+  const faqs = courseFaqs.length > 0 ? courseFaqs : globalFaqs;
 
   const related = allCourses.filter((c) => c.id !== course.id).slice(0, 3);
 
@@ -71,9 +75,18 @@ export default async function CourseDetailPage({
   const audience = list(locale === "ar" ? course.target_audience_ar : course.target_audience_en);
   const prereqs = list(locale === "ar" ? course.prerequisites_ar : course.prerequisites_en);
 
+  const deliveryLabel =
+    course.delivery_type === "in_person"
+      ? locale === "ar" ? "حضوري" : "In-person"
+      : course.delivery_type === "online"
+        ? locale === "ar" ? "أونلاين" : "Online"
+        : course.delivery_type === "hybrid"
+          ? locale === "ar" ? "حضوري / أونلاين" : "In-person / Online"
+          : course.delivery_type;
+
   const meta = [
-    { icon: Clock, label: locale === "ar" ? "المدة" : "Duration", value: course.duration },
-    { icon: GraduationCap, label: locale === "ar" ? "طريقة التقديم" : "Delivery", value: course.delivery_type },
+    { icon: Clock, label: locale === "ar" ? "المدة" : "Duration", value: localized(locale as "en" | "ar", { en: course.duration, ar: course.duration_ar }) },
+    { icon: GraduationCap, label: locale === "ar" ? "طريقة التقديم" : "Delivery", value: deliveryLabel },
     { icon: User, label: locale === "ar" ? "المدرّب" : "Instructor", value: localized(locale as "en" | "ar", { en: course.instructor_en, ar: course.instructor_ar }) },
     { icon: CalendarDays, label: locale === "ar" ? "تاريخ البدء" : "Start Date", value: course.start_date ? formatDate(course.start_date, locale as "en" | "ar") : null },
   ].filter((m) => m.value);

@@ -154,6 +154,7 @@ export type CourseRow = {
   category_id: string | null;
   form_id: string | null;
   duration: string | null;
+  duration_ar: string | null;
   delivery_type: string | null;
   instructor_en: string | null;
   instructor_ar: string | null;
@@ -194,9 +195,12 @@ export type JobRow = {
   qualifications_ar: Json | null;
   skills_en: Json | null;
   skills_ar: Json | null;
+  benefits_en: Json | null;
+  benefits_ar: Json | null;
   location_en: string | null;
   location_ar: string | null;
   employment_type: string | null;
+  experience: string | null;
   salary_min: number | null;
   salary_max: number | null;
   salary_currency: string | null;
@@ -307,6 +311,8 @@ export type FaqRow = {
   answer_ar: string;
   sort_order: number;
   published: boolean;
+  course_id: string | null;
+  job_id: string | null;
   created_at: string;
 }
 

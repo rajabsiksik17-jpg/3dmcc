@@ -195,6 +195,11 @@
     "full": "Full",
     "closed": "Closed"
   },
+  "delivery": {
+    "in_person": "In-person",
+    "online": "Online",
+    "hybrid": "In-person / Online"
+  },
   "sale": "Offer",
   "savePercent": "Save {percent}%",
   "status": {

@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { setRequestLocale } from "next-intl/server";
 import { notFound } from "next/navigation";
-import { getJobBySlug, getFormById, getFormFields } from "@/lib/data/public";
+import { getJobBySlug, getFormById, getFormFields, getFaqs, getGlobalFaqs } from "@/lib/data/public";
 import { localized, absoluteUrl, formatDate } from "@/lib/utils";
 import { useLocale } from "next-intl";
 import { Breadcrumbs } from "@/components/ui/breadcrumbs";
@@ -37,15 +37,20 @@ export default async function JobDetailPage({
   const job = await getJobBySlug(slug);
   if (!job) notFound();
 
-  const [form, fields] = await Promise.all([
+  const [form, fields, jobFaqs, globalFaqs] = await Promise.all([
     job.form_id ? getFormById(job.form_id) : null,
     job.form_id ? getFormFields(job.form_id) : [],
+    getFaqs({ jobId: job.id }),
+    getGlobalFaqs(),
   ]);
+
+  const faqs = jobFaqs.length > 0 ? jobFaqs : globalFaqs;
 
   const responsibilities = list(locale === "ar" ? job.responsibilities_ar : job.responsibilities_en);
   const requirements = list(locale === "ar" ? job.requirements_ar : job.requirements_en);
   const qualifications = list(locale === "ar" ? job.qualifications_ar : job.qualifications_en);
   const skills = list(locale === "ar" ? job.skills_ar : job.skills_en);
+  const benefits = list(locale === "ar" ? job.benefits_ar : job.benefits_en);
 
   const title = localized(locale as "en" | "ar", { en: job.title_en, ar: job.title_ar });
   const salaryText =
@@ -111,6 +116,7 @@ export default async function JobDetailPage({
             {requirements.length > 0 && <ListBlock title={locale === "ar" ? "المتطلبات" : "Requirements"} items={requirements} />}
             {qualifications.length > 0 && <ListBlock title={locale === "ar" ? "المؤهلات" : "Qualifications"} items={qualifications} />}
             {skills.length > 0 && <ListBlock title={locale === "ar" ? "المهارات" : "Skills"} items={skills} />}
+            {benefits.length > 0 && <ListBlock title={locale === "ar" ? "المزايا" : "Benefits"} items={benefits} />}
           </div>
 
           <aside className="lg:col-span-1">
@@ -118,6 +124,11 @@ export default async function JobDetailPage({
               <h3 className="font-semibold text-charcoal-900">
                 {locale === "ar" ? "تقدّم لهذه الوظيفة" : "Apply for this position"}
               </h3>
+              {job.experience && (
+                <p className="mt-2 text-sm text-charcoal-600">
+                  {locale === "ar" ? "الخبرة" : "Experience"}: {job.experience}
+                </p>
+              )}
               <a href="#apply" className="btn-primary mt-4 w-full">
                 {locale === "ar" ? "قدّم الآن" : "Apply Now"}
               </a>
@@ -125,6 +136,29 @@ export default async function JobDetailPage({
           </aside>
         </div>
       </section>
+
+      {faqs.length > 0 && (
+        <section className="py-16">
+          <div className="container-site">
+            <h2 className="text-2xl font-semibold text-charcoal-900 font-display">
+              {locale === "ar" ? "الأسئلة الشائعة" : "Frequently Asked Questions"}
+            </h2>
+            <div className="mt-6 divide-y divide-charcoal-100 rounded-2xl border border-charcoal-100 bg-white shadow-card">
+              {faqs.slice(0, 4).map((f) => (
+                <details key={f.id} className="group px-6 py-4">
+                  <summary className="flex cursor-pointer list-none items-center justify-between gap-4 font-medium text-charcoal-900">
+                    {locale === "ar" ? f.question_ar : f.question_en}
+                    <span className="text-brand-500">+</span>
+                  </summary>
+                  <p className="mt-3 text-sm leading-relaxed text-charcoal-600">
+                    {locale === "ar" ? f.answer_ar : f.answer_en}
+                  </p>
+                </details>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
 
       <section id="apply" className="bg-charcoal-50 py-16">
         <div className="container-site">

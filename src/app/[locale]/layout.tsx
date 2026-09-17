@@ -50,6 +50,9 @@ export default async function LocaleLayout({
   setRequestLocale(locale);
 
   const dir = locale === "ar" ? "rtl" : "ltr";
+  const messages = locale === "ar"
+    ? (await import("../../../messages/ar.json")).default
+    : (await import("../../../messages/en.json")).default;
 
   const [company, headerMenu, footerMenu, services, courses] = await Promise.all([
     getCompanySettings(),
@@ -62,7 +65,7 @@ export default async function LocaleLayout({
   return (
     <html lang={locale} dir={dir} className={`${inter.variable} ${jakarta.variable} ${tajawal.variable}`}>
       <body>
-        <NextIntlClientProvider>
+        <NextIntlClientProvider messages={messages} locale={locale}>
           <Header company={company} menuItems={headerMenu} />
           <main className="min-h-screen">{children}</main>
           <Footer

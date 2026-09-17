@@ -207,11 +207,23 @@ export const getPartners = cache(async (): Promise<PartnerRow[]> => {
   return data ?? [];
 });
 
-export const getFaqs = cache(async (): Promise<FaqRow[]> => {
+export const getFaqs = cache(
+  async (opts: { courseId?: string; jobId?: string } = {}): Promise<FaqRow[]> => {
+    let q = (await sb()).from("faqs").select("*").eq("published", true).order("sort_order", { ascending: true });
+    if (opts.courseId) q = q.eq("course_id", opts.courseId);
+    if (opts.jobId) q = q.eq("job_id", opts.jobId);
+    const { data } = await q;
+    return data ?? [];
+  }
+);
+
+export const getGlobalFaqs = cache(async (): Promise<FaqRow[]> => {
   const { data } = await (await sb())
     .from("faqs")
     .select("*")
     .eq("published", true)
+    .is("course_id", null)
+    .is("job_id", null)
     .order("sort_order", { ascending: true });
   return data ?? [];
 });

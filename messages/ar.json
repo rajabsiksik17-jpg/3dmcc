@@ -195,6 +195,11 @@
     "full": "مكتمل",
     "closed": "مغلق"
   },
+  "delivery": {
+    "in_person": "حضوري",
+    "online": "أونلاين",
+    "hybrid": "حضوري / أونلاين"
+  },
   "sale": "عرض",
   "savePercent": "وفّر {percent}%",
   "status": {

@@ -8,6 +8,7 @@ import { DynamicIcon } from "@/components/ui/icon";
 export function CourseCard({ course }: { course: CourseRow }) {
   const locale = useLocale() as "en" | "ar";
   const ta = useTranslations("availability");
+  const td = useTranslations("delivery");
 
   const hasOffer = course.offer_price != null && course.price != null && course.offer_price < course.price;
   const percent = hasOffer && course.price ? Math.round(((course.price - (course.offer_price ?? 0)) / course.price) * 100) : 0;
@@ -16,6 +17,13 @@ export function CourseCard({ course }: { course: CourseRow }) {
     ? ta.has(course.availability)
       ? ta(course.availability as "open" | "full" | "closed")
       : course.availability
+    : "";
+
+  const duration = localized(locale, { en: course.duration, ar: course.duration_ar });
+  const delivery = course.delivery_type
+    ? td.has(course.delivery_type)
+      ? td(course.delivery_type as "in_person" | "online" | "hybrid")
+      : course.delivery_type
     : "";
 
   return (
@@ -72,16 +80,16 @@ export function CourseCard({ course }: { course: CourseRow }) {
         </div>
 
         <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1.5 text-xs text-charcoal-500">
-          {course.duration && (
+          {duration && (
             <span className="inline-flex items-center gap-1.5">
               <Clock className="h-3.5 w-3.5 text-brand-500" />
-              {course.duration}
+              {duration}
             </span>
           )}
-          {course.delivery_type && (
+          {delivery && (
             <span className="inline-flex items-center gap-1.5">
               <User className="h-3.5 w-3.5 text-brand-500" />
-              {course.delivery_type}
+              {delivery}
             </span>
           )}
           {course.start_date && (

@@ -1,10 +1,11 @@
 import Link from "next/link";
 import { requireAdmin } from "@/lib/auth";
-import { adminJobs, adminForms } from "@/lib/admin-data";
+import { adminJobs, adminForms, adminFaqs } from "@/lib/admin-data";
 import { saveJob, deleteJob, duplicateJob } from "@/app/admin/actions/content";
 import { AdminEntityForm, type FieldDef } from "@/components/admin/admin-entity-form";
 import { DeleteButton } from "@/components/admin/delete-button";
 import { DuplicateButton } from "@/components/admin/duplicate-button";
+import { EntityFaqsEditor } from "@/components/admin/entity-faqs-editor";
 import { getAdminT } from "@/lib/admin-i18n";
 
 export const dynamic = "force-dynamic";
@@ -29,6 +30,7 @@ function fields(formOptions: { value: string; label: string }[]): FieldDef[] {
       ],
     },
     { name: "deadline", label: "deadline", half: true },
+    { name: "experience", label: "experience", half: true },
     { name: "status", label: "status", type: "select", options: [{ value: "published", label: "published" }, { value: "draft", label: "draft" }], half: true },
     { name: "sort_order", label: "sortOrder", type: "number", half: true },
     { name: "form_id", label: "applicationForm", type: "select", options: [{ value: "", label: "noForm" }, ...formOptions], half: true },
@@ -36,6 +38,16 @@ function fields(formOptions: { value: string; label: string }[]): FieldDef[] {
     { name: "featured_image", label: "featuredImage", type: "image" },
     { name: "description_en", label: "descriptionEn", type: "textarea" },
     { name: "description_ar", label: "descriptionAr", type: "textarea" },
+    { name: "responsibilities_en", label: "responsibilitiesEn", type: "list" },
+    { name: "responsibilities_ar", label: "responsibilitiesAr", type: "list" },
+    { name: "requirements_en", label: "requirementsEn", type: "list" },
+    { name: "requirements_ar", label: "requirementsAr", type: "list" },
+    { name: "qualifications_en", label: "qualificationsEn", type: "list" },
+    { name: "qualifications_ar", label: "qualificationsAr", type: "list" },
+    { name: "skills_en", label: "skillsEn", type: "list" },
+    { name: "skills_ar", label: "skillsAr", type: "list" },
+    { name: "benefits_en", label: "benefitsEn", type: "list" },
+    { name: "benefits_ar", label: "benefitsAr", type: "list" },
     { name: "featured", label: "featured", type: "toggle" },
   ];
 }
@@ -44,12 +56,13 @@ export default async function CareersPage({ searchParams }: { searchParams: Prom
   await requireAdmin();
   const { t } = await getAdminT();
   const { edit } = await searchParams;
-  const [jobs, forms] = await Promise.all([adminJobs(), adminForms()]);
+  const [jobs, forms, allFaqs] = await Promise.all([adminJobs(), adminForms(), adminFaqs()]);
 
   const formOptions = forms
     .filter((f) => f.type === "career" || f.type === "custom")
     .map((f) => ({ value: f.id, label: f.name }));
 
+  const defaultForm = forms.find((f) => f.type === "career") ?? forms.find((f) => f.type === "custom");
   const editing = edit && edit !== "new" ? jobs.find((j) => j.id === edit) : undefined;
 
   return (
@@ -63,11 +76,14 @@ export default async function CareersPage({ searchParams }: { searchParams: Prom
         <div className="mb-8">
           <AdminEntityForm
             fields={fields(formOptions)}
-            initial={(editing as Record<string, unknown>) ?? { status: "published" }}
+            initial={(editing as Record<string, unknown>) ?? { status: "published", icon: "Briefcase", form_id: defaultForm?.id ?? "" }}
             action={saveJob}
             cancelHref="/admin/careers"
             submitLabel={editing ? "updateJob" : "createJob"}
           />
+          {editing && (
+            <EntityFaqsEditor entityType="job" entityId={editing.id} faqs={allFaqs.filter((f) => f.job_id === editing.id)} />
+          )}
         </div>
       )}
 

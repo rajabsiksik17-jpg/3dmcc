@@ -1,22 +1,29 @@
 import Link from "next/link";
 import { requireAdmin } from "@/lib/auth";
-import { adminCourses, adminCategories } from "@/lib/admin-data";
+import { adminCourses, adminCategories, adminForms, adminFaqs } from "@/lib/admin-data";
 import { saveCourse, deleteCourse, duplicateCourse } from "@/app/admin/actions/content";
 import { AdminEntityForm, type FieldDef } from "@/components/admin/admin-entity-form";
 import { DeleteButton } from "@/components/admin/delete-button";
 import { DuplicateButton } from "@/components/admin/duplicate-button";
+import { EntityFaqsEditor } from "@/components/admin/entity-faqs-editor";
 import { getAdminT } from "@/lib/admin-i18n";
 
 export const dynamic = "force-dynamic";
 
-function fields(categoryOptions: { value: string; label: string }[]): FieldDef[] {
+function fields(categoryOptions: { value: string; label: string }[], formOptions: { value: string; label: string }[]): FieldDef[] {
   return [
     { name: "title_en", label: "titleEn", half: true },
     { name: "title_ar", label: "titleAr", half: true },
     { name: "slug", label: "slugOptional", half: true },
     { name: "category_id", label: "category", type: "select", options: categoryOptions, half: true },
+    { name: "form_id", label: "applicationForm", type: "select", options: [{ value: "", label: "noForm" }, ...formOptions], half: true },
     { name: "duration", label: "duration", half: true },
-    { name: "delivery_type", label: "deliveryType", half: true },
+    { name: "duration_ar", label: "durationAr", half: true },
+    { name: "delivery_type", label: "deliveryType", type: "select", options: [
+      { value: "in_person", label: "deliveryInPerson" },
+      { value: "online", label: "deliveryOnline" },
+      { value: "hybrid", label: "deliveryHybrid" },
+    ], half: true },
     { name: "instructor_en", label: "instructorEn", half: true },
     { name: "instructor_ar", label: "instructorAr", half: true },
     { name: "price", label: "basePrice", type: "number", half: true, step: 0.01 },
@@ -39,6 +46,14 @@ function fields(categoryOptions: { value: string; label: string }[]): FieldDef[]
     { name: "short_description_ar", label: "shortDescriptionAr", type: "textarea" },
     { name: "full_description_en", label: "fullDescriptionEn", type: "textarea" },
     { name: "full_description_ar", label: "fullDescriptionAr", type: "textarea" },
+    { name: "learning_objectives_en", label: "learningObjectivesEn", type: "list" },
+    { name: "learning_objectives_ar", label: "learningObjectivesAr", type: "list" },
+    { name: "curriculum_en", label: "curriculumEn", type: "list" },
+    { name: "curriculum_ar", label: "curriculumAr", type: "list" },
+    { name: "target_audience_en", label: "targetAudienceEn", type: "list" },
+    { name: "target_audience_ar", label: "targetAudienceAr", type: "list" },
+    { name: "prerequisites_en", label: "prerequisitesEn", type: "list" },
+    { name: "prerequisites_ar", label: "prerequisitesAr", type: "list" },
     { name: "featured", label: "featured", type: "toggle" },
   ];
 }
@@ -47,9 +62,14 @@ export default async function CoursesPage({ searchParams }: { searchParams: Prom
   await requireAdmin();
   const { t } = await getAdminT();
   const { edit } = await searchParams;
-  const [courses, { courses: categories }] = await Promise.all([adminCourses(), adminCategories()]);
+  const [courses, { courses: categories }, forms, allFaqs] = await Promise.all([adminCourses(), adminCategories(), adminForms(), adminFaqs()]);
 
   const categoryOptions = categories.map((c) => ({ value: c.id, label: c.name_en }));
+  const formOptions = forms
+    .filter((f) => f.type === "course" || f.type === "custom")
+    .map((f) => ({ value: f.id, label: f.name }));
+
+  const defaultForm = forms.find((f) => f.type === "course") ?? forms.find((f) => f.type === "custom");
   const editing = edit && edit !== "new" ? courses.find((c) => c.id === edit) : undefined;
 
   return (
@@ -62,12 +82,15 @@ export default async function CoursesPage({ searchParams }: { searchParams: Prom
       {edit && (
         <div className="mb-8">
           <AdminEntityForm
-            fields={fields(categoryOptions)}
-            initial={(editing as Record<string, unknown>) ?? { status: "published", availability: "open" }}
+            fields={fields(categoryOptions, formOptions)}
+            initial={(editing as Record<string, unknown>) ?? { status: "published", availability: "open", icon: "GraduationCap", form_id: defaultForm?.id ?? "" }}
             action={saveCourse}
             cancelHref="/admin/courses"
             submitLabel={editing ? "updateCourse" : "createCourse"}
           />
+          {editing && (
+            <EntityFaqsEditor entityType="course" entityId={editing.id} faqs={allFaqs.filter((f) => f.course_id === editing.id)} />
+          )}
         </div>
       )}
 

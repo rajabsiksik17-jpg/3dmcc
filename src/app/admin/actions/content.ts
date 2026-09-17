@@ -31,6 +31,7 @@ export async function saveService(input: unknown) {
       full_description_ar: z.string().optional(),
       icon: z.string().optional(),
       category_id: z.string().nullable().optional(),
+      form_id: z.string().nullable().optional(),
       status: z.enum(["draft", "published"]).default("published"),
       featured: z.boolean().default(false),
       show_on_homepage: z.boolean().default(true),
@@ -52,6 +53,7 @@ export async function saveService(input: unknown) {
     full_description_ar: d.full_description_ar ?? null,
     icon: d.icon ?? null,
     category_id: d.category_id ?? null,
+    form_id: d.form_id ?? null,
     status: d.status,
     featured: d.featured,
     show_on_homepage: d.show_on_homepage,
@@ -81,6 +83,7 @@ export async function deleteService(id: string) {
 export async function saveCourse(input: unknown) {
   await requirePermission("courses.update");
   const d = input as Record<string, unknown>;
+  const toList = (v: unknown): Json => (Array.isArray(v) ? v : typeof v === "string" && v.trim() ? v.split("\n").map((s) => s.trim()).filter(Boolean) : []);
   const payload = {
     title_en: String(d.title_en ?? ""),
     title_ar: String(d.title_ar ?? ""),
@@ -89,9 +92,19 @@ export async function saveCourse(input: unknown) {
     short_description_ar: (d.short_description_ar as string) ?? null,
     full_description_en: (d.full_description_en as string) ?? null,
     full_description_ar: (d.full_description_ar as string) ?? null,
+    learning_objectives_en: toList(d.learning_objectives_en),
+    learning_objectives_ar: toList(d.learning_objectives_ar),
+    curriculum_en: toList(d.curriculum_en),
+    curriculum_ar: toList(d.curriculum_ar),
+    target_audience_en: toList(d.target_audience_en),
+    target_audience_ar: toList(d.target_audience_ar),
+    prerequisites_en: toList(d.prerequisites_en),
+    prerequisites_ar: toList(d.prerequisites_ar),
     category_id: (d.category_id as string) ?? null,
+    form_id: (d.form_id as string) ?? null,
     icon: (d.icon as string) ?? null,
     duration: (d.duration as string) ?? null,
+    duration_ar: (d.duration_ar as string) ?? null,
     delivery_type: (d.delivery_type as string) ?? null,
     instructor_en: (d.instructor_en as string) ?? null,
     instructor_ar: (d.instructor_ar as string) ?? null,
@@ -127,6 +140,7 @@ export async function deleteCourse(id: string) {
 export async function saveJob(input: unknown) {
   await requirePermission("jobs.update");
   const d = input as Record<string, unknown>;
+  const toList = (v: unknown): Json => (Array.isArray(v) ? v : typeof v === "string" && v.trim() ? v.split("\n").map((s) => s.trim()).filter(Boolean) : []);
   const payload = {
     title_en: String(d.title_en ?? ""),
     title_ar: String(d.title_ar ?? ""),
@@ -135,9 +149,20 @@ export async function saveJob(input: unknown) {
     department_ar: (d.department_ar as string) ?? null,
     description_en: (d.description_en as string) ?? null,
     description_ar: (d.description_ar as string) ?? null,
+    responsibilities_en: toList(d.responsibilities_en),
+    responsibilities_ar: toList(d.responsibilities_ar),
+    requirements_en: toList(d.requirements_en),
+    requirements_ar: toList(d.requirements_ar),
+    qualifications_en: toList(d.qualifications_en),
+    qualifications_ar: toList(d.qualifications_ar),
+    skills_en: toList(d.skills_en),
+    skills_ar: toList(d.skills_ar),
+    benefits_en: toList(d.benefits_en),
+    benefits_ar: toList(d.benefits_ar),
     location_en: (d.location_en as string) ?? null,
     location_ar: (d.location_ar as string) ?? null,
     employment_type: (d.employment_type as string) ?? null,
+    experience: (d.experience as string) ?? null,
     deadline: (d.deadline as string) ?? null,
     icon: (d.icon as string) ?? null,
     featured_image: (d.featured_image as string) ?? null,
@@ -210,6 +235,8 @@ export async function saveFaq(input: unknown) {
     answer_ar: String(d.answer_ar ?? ""),
     published: Boolean(d.published ?? true),
     sort_order: Number(d.sort_order ?? 0),
+    course_id: (d.course_id as string) ?? null,
+    job_id: (d.job_id as string) ?? null,
   };
   const id = d.id as string | undefined;
   const { error } = id

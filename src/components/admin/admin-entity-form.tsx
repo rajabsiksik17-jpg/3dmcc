@@ -11,7 +11,7 @@ import { MediaPicker } from "./media-picker";
 export type FieldDef = {
   name: string;
   label: string;
-  type?: "text" | "textarea" | "select" | "number" | "toggle" | "icon" | "image";
+  type?: "text" | "textarea" | "select" | "number" | "toggle" | "icon" | "image" | "list";
   options?: { value: string; label: string }[];
   placeholder?: string;
   half?: boolean;
@@ -37,10 +37,11 @@ export function AdminEntityForm({
   const [error, setError] = useState("");
 
   const [values, setValues] = useState<Record<string, unknown>>(() => {
-    const v: Record<string, unknown> = {};
+    const v: Record<string, unknown> = { ...initial };
     for (const f of fields) {
-      const existing = initial[f.name];
-      v[f.name] = existing ?? (f.type === "toggle" ? false : f.type === "number" ? 0 : "");
+      if (v[f.name] === undefined || v[f.name] === null) {
+        v[f.name] = f.type === "toggle" ? false : f.type === "number" ? 0 : f.type === "list" ? [] : "";
+      }
     }
     return v;
   });
@@ -85,6 +86,31 @@ export function AdminEntityForm({
                   placeholder={f.placeholder}
                   onChange={(e) => set(f.name, e.target.value)}
                 />
+              </div>
+            );
+          }
+
+          if (f.type === "list") {
+            const arr = Array.isArray(val) ? (val as string[]) : [];
+            return (
+              <div key={f.name} className="sm:col-span-2">
+                <label className="label">{label(f.label)}</label>
+                <textarea
+                  rows={4}
+                  className="input"
+                  value={arr.join("\n")}
+                  placeholder={f.placeholder}
+                  onChange={(e) =>
+                    set(
+                      f.name,
+                      e.target.value
+                        .split("\n")
+                        .map((s) => s.trim())
+                        .filter(Boolean)
+                    )
+                  }
+                />
+                <p className="mt-1 text-xs text-charcoal-400">{t("listHint")}</p>
               </div>
             );
           }

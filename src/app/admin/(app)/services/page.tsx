@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { requireAdmin } from "@/lib/auth";
-import { adminServices, adminCategories } from "@/lib/admin-data";
+import { adminServices, adminCategories, adminForms } from "@/lib/admin-data";
 import { saveService, deleteService, duplicateService } from "@/app/admin/actions/content";
 import { AdminEntityForm, type FieldDef } from "@/components/admin/admin-entity-form";
 import { DeleteButton } from "@/components/admin/delete-button";
@@ -9,12 +9,13 @@ import { getAdminT } from "@/lib/admin-i18n";
 
 export const dynamic = "force-dynamic";
 
-function fields(categoryOptions: { value: string; label: string }[]): FieldDef[] {
+function fields(categoryOptions: { value: string; label: string }[], formOptions: { value: string; label: string }[]): FieldDef[] {
   return [
     { name: "title_en", label: "titleEn", half: true },
     { name: "title_ar", label: "titleAr", half: true },
     { name: "slug", label: "slugOptional", half: true, placeholder: "auto-generated" },
     { name: "category_id", label: "category", type: "select", options: categoryOptions, half: true },
+    { name: "form_id", label: "applicationForm", type: "select", options: [{ value: "", label: "noForm" }, ...formOptions], half: true },
     { name: "status", label: "status", type: "select", options: [{ value: "published", label: "published" }, { value: "draft", label: "draft" }], half: true },
     { name: "sort_order", label: "sortOrder", type: "number", half: true },
     { name: "icon", label: "icon", type: "icon" },
@@ -33,9 +34,13 @@ export default async function ServicesPage({ searchParams }: { searchParams: Pro
   await requireAdmin();
   const { t } = await getAdminT();
   const { edit } = await searchParams;
-  const [services, { services: categories }] = await Promise.all([adminServices(), adminCategories()]);
+  const [services, { services: categories }, forms] = await Promise.all([adminServices(), adminCategories(), adminForms()]);
 
   const categoryOptions = categories.map((c) => ({ value: c.id, label: c.name_en }));
+  const formOptions = forms
+    .filter((f) => f.type === "service" || f.type === "custom" || f.type === "contact")
+    .map((f) => ({ value: f.id, label: f.name }));
+  const defaultForm = forms.find((f) => f.type === "service") ?? forms.find((f) => f.type === "custom");
   const editing = edit && edit !== "new" ? services.find((s) => s.id === edit) : undefined;
 
   return (
@@ -48,8 +53,8 @@ export default async function ServicesPage({ searchParams }: { searchParams: Pro
       {edit && (
         <div className="mb-8">
           <AdminEntityForm
-            fields={fields(categoryOptions)}
-            initial={(editing as Record<string, unknown>) ?? { show_on_homepage: true, status: "published" }}
+            fields={fields(categoryOptions, formOptions)}
+            initial={(editing as Record<string, unknown>) ?? { show_on_homepage: true, status: "published", icon: "Briefcase", form_id: defaultForm?.id ?? "" }}
             action={saveService}
             cancelHref="/admin/services"
             submitLabel={editing ? "updateService" : "createService"}
