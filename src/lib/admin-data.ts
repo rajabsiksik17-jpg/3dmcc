@@ -19,6 +19,8 @@ import type {
   IntegrationRow,
   MediaRow,
   RoleRow,
+  ClientRow,
+  PartnerRow,
 } from "@/types/database";
 
 const admin = () => createAdminClient();
@@ -173,5 +175,15 @@ export async function adminMedia(): Promise<MediaRow[]> {
 
 export async function adminRoles(): Promise<RoleRow[]> {
   const { data } = await admin().from("roles").select("*").order("name");
+  return data ?? [];
+}
+
+export async function adminClients(): Promise<ClientRow[]> {
+  const { data } = await admin().from("clients").select("*").order("sort_order");
+  return data ?? [];
+}
+
+export async function adminPartners(): Promise<PartnerRow[]> {
+  const { data } = await admin().from("partners").select("*").order("sort_order");
   return data ?? [];
 }

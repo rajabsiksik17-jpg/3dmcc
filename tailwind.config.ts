@@ -56,6 +56,8 @@ const config: Config = {
         "fade-in": "fadeIn 0.6s ease-out",
         "slide-up": "slideUp 0.6s cubic-bezier(0.22, 1, 0.36, 1)",
         shimmer: "shimmer 1.8s infinite",
+        "marquee-ltr": "marqueeLtr 40s linear infinite",
+        "marquee-rtl": "marqueeRtl 40s linear infinite",
       },
       keyframes: {
         fadeIn: {
@@ -69,6 +71,14 @@ const config: Config = {
         shimmer: {
           "0%": { backgroundPosition: "-400px 0" },
           "100%": { backgroundPosition: "400px 0" },
+        },
+        marqueeLtr: {
+          "0%": { transform: "translateX(0)" },
+          "100%": { transform: "translateX(-50%)" },
+        },
+        marqueeRtl: {
+          "0%": { transform: "translateX(-50%)" },
+          "100%": { transform: "translateX(0)" },
         },
       },
     },

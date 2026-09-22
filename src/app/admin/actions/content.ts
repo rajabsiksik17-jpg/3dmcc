@@ -327,6 +327,7 @@ export async function saveCompanySettings(input: unknown) {
       full_description_ar: (d.full_description_ar as string) ?? null,
       logo_url: (d.logo_url as string) ?? null,
       logo_light_url: (d.logo_light_url as string) ?? null,
+      logo_dark_url: (d.logo_dark_url as string) ?? null,
       favicon_url: (d.favicon_url as string) ?? null,
       phone: (d.phone as string) ?? null,
       whatsapp: (d.whatsapp as string) ?? null,
@@ -583,6 +584,65 @@ export async function deleteRole(name: string) {
   if (name === "super_admin") return { ok: false, error: "Cannot delete super_admin" };
   const { error } = await admin().from("roles").delete().eq("name", name);
   revalidatePath("/admin");
+  return handle(error);
+}
+
+// ---------------------------------------------------------------------------
+// Clients & partners
+// ---------------------------------------------------------------------------
+export async function saveClient(input: unknown) {
+  await requireAdmin();
+  const d = input as Record<string, unknown>;
+  const payload = {
+    name: String(d.name ?? ""),
+    logo: (d.logo as string) ?? null,
+    website: (d.website as string) ?? null,
+    description: (d.description as string) ?? null,
+    featured: Boolean(d.featured),
+    active: Boolean(d.active ?? true),
+    sort_order: Number(d.sort_order ?? 0),
+    is_demo: Boolean(d.is_demo),
+  };
+  const id = d.id as string | undefined;
+  const { error } = id
+    ? await admin().from("clients").update(payload).eq("id", id)
+    : await admin().from("clients").insert(payload);
+  revalidatePath("/", "layout");
+  return handle(error);
+}
+
+export async function deleteClient(id: string) {
+  await requireAdmin();
+  const { error } = await admin().from("clients").delete().eq("id", id);
+  revalidatePath("/", "layout");
+  return handle(error);
+}
+
+export async function savePartner(input: unknown) {
+  await requireAdmin();
+  const d = input as Record<string, unknown>;
+  const payload = {
+    name: String(d.name ?? ""),
+    logo: (d.logo as string) ?? null,
+    website: (d.website as string) ?? null,
+    description: (d.description as string) ?? null,
+    featured: Boolean(d.featured),
+    active: Boolean(d.active ?? true),
+    sort_order: Number(d.sort_order ?? 0),
+    is_demo: Boolean(d.is_demo),
+  };
+  const id = d.id as string | undefined;
+  const { error } = id
+    ? await admin().from("partners").update(payload).eq("id", id)
+    : await admin().from("partners").insert(payload);
+  revalidatePath("/", "layout");
+  return handle(error);
+}
+
+export async function deletePartner(id: string) {
+  await requireAdmin();
+  const { error } = await admin().from("partners").delete().eq("id", id);
+  revalidatePath("/", "layout");
   return handle(error);
 }
 

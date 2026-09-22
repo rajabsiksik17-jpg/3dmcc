@@ -23,6 +23,8 @@ import {
 } from "@/lib/data/public";
 import { ContactBlock } from "./contact-block";
 import { HeroSlider, type Slide as HeroSlide } from "./hero-slider";
+import { LogoMarquee } from "./logo-marquee";
+import { StatsCounter } from "./stats-counter";
 import { ArrowRight, Mail, MapPin, Phone, Clock } from "lucide-react";
 
 // ---------------------------------------------------------------------------
@@ -495,24 +497,18 @@ function TimelineSection({ content }: { content: Data }) {
 // Stats
 // ---------------------------------------------------------------------------
 function StatsSection({ content }: { content: Data }) {
-  const locale = useLocale() as "en" | "ar";
   const items = arr(content, "items");
   if (items.length === 0) return null;
+  const stats = items.map((item) => ({
+    value: Number(item.value ?? 0),
+    label_en: str(item, "label_en"),
+    label_ar: str(item, "label_ar"),
+    suffix: str(item, "suffix"),
+  }));
   return (
     <Section className="bg-brand-gradient">
       <div className="container-site">
-        <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
-          {items.map((item, i) => (
-            <Reveal key={i} delay={i * 0.05}>
-              <div className="text-center">
-                <div className="text-4xl font-bold text-white">{String(item.value)}</div>
-                <p className="mt-2 text-sm text-white/90">
-                  {locale === "ar" ? str(item, "label_ar") : str(item, "label_en")}
-                </p>
-              </div>
-            </Reveal>
-          ))}
-        </div>
+        <StatsCounter items={stats} />
       </div>
     </Section>
   );
@@ -583,6 +579,7 @@ async function LogoCloudSection({ content, kind }: { content: Data; kind: "clien
   const locale = (await getLocale()) as "en" | "ar";
   const items = kind === "clients" ? await getClients() : await getPartners();
   if (items.length === 0) return null;
+  const logos = items.map((item) => ({ id: item.id, name: item.name, logo: item.logo, website: item.website }));
   return (
     <Section className="bg-white py-16">
       <div className="container-site">
@@ -592,20 +589,9 @@ async function LogoCloudSection({ content, kind }: { content: Data; kind: "clien
             title={locale === "ar" ? str(content, "title_ar") : str(content, "title_en")}
           />
         </Reveal>
-        <div className="mt-10 grid grid-cols-2 gap-6 sm:grid-cols-3 lg:grid-cols-6">
-          {items.map((item, i) => (
-            <Reveal key={item.id} delay={i * 0.03}>
-              <div className="flex h-20 items-center justify-center rounded-xl border border-charcoal-100 bg-white p-4">
-                {item.logo ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img src={item.logo} alt={item.name} className="max-h-full max-w-full object-contain" />
-                ) : (
-                  <span className="text-sm font-semibold text-charcoal-500">{item.name}</span>
-                )}
-              </div>
-            </Reveal>
-          ))}
-        </div>
+      </div>
+      <div className="mt-10">
+        <LogoMarquee logos={logos} />
       </div>
     </Section>
   );

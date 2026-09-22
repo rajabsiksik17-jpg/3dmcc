@@ -1,5 +1,6 @@
 import { setRequestLocale } from "next-intl/server";
 import { notFound } from "next/navigation";
+import type { Metadata } from "next";
 import { routing } from "@/i18n/routing";
 import { NextIntlClientProvider } from "next-intl";
 import { Plus_Jakarta_Sans, Inter, Tajawal } from "next/font/google";
@@ -35,6 +36,18 @@ const tajawal = Tajawal({
 });
 
 export const dynamic = "force-dynamic";
+
+export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
+  const { locale } = await params;
+  const company = await getCompanySettings();
+  return {
+    icons: company?.favicon_url ? { icon: company.favicon_url } : undefined,
+    title: {
+      default: locale === "ar" ? company?.name_ar ?? "3DMCC" : company?.name_en ?? "3DMCC",
+      template: `%s — ${company?.name_en ?? "3DMCC"}`,
+    },
+  };
+}
 
 export default async function LocaleLayout({
   children,

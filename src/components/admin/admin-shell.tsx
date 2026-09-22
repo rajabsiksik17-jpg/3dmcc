@@ -26,6 +26,7 @@ import {
   Menu,
   LogOut,
   FolderTree,
+  Handshake,
 } from "lucide-react";
 
 interface NavItem {
@@ -61,6 +62,8 @@ export function AdminShell({
     { label: t("careers"), href: "/admin/careers", icon: Users },
     { label: t("team"), href: "/admin/team", icon: Users },
     { label: t("faqs"), href: "/admin/faqs", icon: HelpCircle },
+    { label: t("clients"), href: "/admin/clients", icon: Users },
+    { label: t("partners"), href: "/admin/partners", icon: Handshake },
     { label: t("media"), href: "/admin/media", icon: Image },
     { label: t("forms"), href: "/admin/forms", icon: Layers, group: t("groupForms") },
     { label: t("courseRequests"), href: "/admin/course-requests", icon: Inbox },
